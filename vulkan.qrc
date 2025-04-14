@@ -1,0 +1,9 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <qresource prefix="/">
+        <file>color.vert.spv</file>
+        <file>color.frag.spv</file>
+        <file>overlay.vert.spv</file>
+        <file>overlay.frag.spv</file>
+    </qresource>
+</RCC> 
