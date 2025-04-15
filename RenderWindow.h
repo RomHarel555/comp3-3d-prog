@@ -234,6 +234,13 @@ private:
     VkBuffer mNPCBuffer = VK_NULL_HANDLE;
     VkDeviceMemory mNPCBufferMemory = VK_NULL_HANDLE;
 
+    // CrateCube model resources for NPCs
+    VkBuffer mCrateCubeBuffer = VK_NULL_HANDLE;
+    VkDeviceMemory mCrateCubeBufferMemory = VK_NULL_HANDLE;
+    VkBuffer mCrateCubeIndexBuffer = VK_NULL_HANDLE;
+    VkDeviceMemory mCrateCubeIndexBufferMemory = VK_NULL_HANDLE;
+    uint32_t mCrateCubeIndexCount = 0;
+
     QVector<PatrolEnemy> mNPCs;
     
     // Overlay resources for game over screen

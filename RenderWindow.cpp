@@ -1,4 +1,4 @@
-#include "RenderWindow.h"
+﻿#include "RenderWindow.h"
 #include <QVulkanFunctions>
 #include <QFile>
 #include "VulkanWindow.h"
@@ -1164,6 +1164,199 @@ void RenderWindow::initResources()
     memcpy(npcVertPtr3, npcVertexData3, sizeof(npcVertexData3));
     mDeviceFunctions->vkUnmapMemory(logicalDevice, mNPCBufferMemory3);
     
+    // Load CrateCube model for NPCs
+    qDebug() << "Loading CrateCube model for NPCs...";
+    
+    // Simple hardcoded vertices and indices for the crate cube (matching CrateCube.obj format)
+    // In a real application, you should parse the OBJ file properly
+    static const float crateCubeVertices[] = {
+        // Position (XYZ)     // Color (RGB) - brown-ish crate color
+        // 8 vertices of a cube
+        -1.0f, -1.0f,  1.0f,  0.8f, 0.5f, 0.2f,  // 0
+        -1.0f, -1.0f, -1.0f,  0.8f, 0.5f, 0.2f,  // 1
+         1.0f, -1.0f, -1.0f,  0.8f, 0.5f, 0.2f,  // 2
+         1.0f, -1.0f,  1.0f,  0.8f, 0.5f, 0.2f,  // 3
+        -1.0f,  1.0f,  1.0f,  0.8f, 0.5f, 0.2f,  // 4
+        -1.0f,  1.0f, -1.0f,  0.8f, 0.5f, 0.2f,  // 5
+         1.0f,  1.0f, -1.0f,  0.8f, 0.5f, 0.2f,  // 6
+         1.0f,  1.0f,  1.0f,  0.8f, 0.5f, 0.2f   // 7
+    };
+    
+    // Indices for the cube faces (6 faces, 2 triangles per face, 3 indices per triangle)
+    static const uint32_t crateCubeIndices[] = {
+        // Left side
+        4, 5, 1, 4, 1, 0,
+        // Back side
+        5, 6, 2, 5, 2, 1,
+        // Right side
+        6, 7, 3, 6, 3, 2,
+        // Front side
+        7, 4, 0, 7, 0, 3,
+        // Bottom
+        0, 1, 2, 0, 2, 3,
+        // Top
+        7, 6, 5, 7, 5, 4
+    };
+    
+    mCrateCubeIndexCount = sizeof(crateCubeIndices) / sizeof(crateCubeIndices[0]);
+    
+    // Create CrateCube vertex buffer
+    VkBufferCreateInfo crateBufInfo = {};
+    crateBufInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    crateBufInfo.size = sizeof(crateCubeVertices);
+    crateBufInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+    
+    try {
+        err = mDeviceFunctions->vkCreateBuffer(logicalDevice, &crateBufInfo, nullptr, &mCrateCubeBuffer);
+        if (err != VK_SUCCESS) {
+            qDebug() << "WARNING: Failed to create CrateCube buffer: Error" << err;
+            mCrateCubeBuffer = VK_NULL_HANDLE;
+            return; // Skip further initialization if buffer creation fails
+        }
+        
+        VkMemoryRequirements crateMemReq;
+        mDeviceFunctions->vkGetBufferMemoryRequirements(logicalDevice, mCrateCubeBuffer, &crateMemReq);
+        
+        VkMemoryAllocateInfo crateAllocInfo = {
+            VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+            nullptr,
+            crateMemReq.size,
+            mWindow->hostVisibleMemoryIndex()
+        };
+        
+        err = mDeviceFunctions->vkAllocateMemory(logicalDevice, &crateAllocInfo, nullptr, &mCrateCubeBufferMemory);
+        if (err != VK_SUCCESS) {
+            qDebug() << "WARNING: Failed to allocate CrateCube buffer memory: Error" << err;
+            mDeviceFunctions->vkDestroyBuffer(logicalDevice, mCrateCubeBuffer, nullptr);
+            mCrateCubeBuffer = VK_NULL_HANDLE;
+            mCrateCubeBufferMemory = VK_NULL_HANDLE;
+            return; // Skip further initialization if memory allocation fails
+        }
+        
+        err = mDeviceFunctions->vkBindBufferMemory(logicalDevice, mCrateCubeBuffer, mCrateCubeBufferMemory, 0);
+        if (err != VK_SUCCESS) {
+            qDebug() << "WARNING: Failed to bind CrateCube buffer memory: Error" << err;
+            mDeviceFunctions->vkDestroyBuffer(logicalDevice, mCrateCubeBuffer, nullptr);
+            mDeviceFunctions->vkFreeMemory(logicalDevice, mCrateCubeBufferMemory, nullptr);
+            mCrateCubeBuffer = VK_NULL_HANDLE;
+            mCrateCubeBufferMemory = VK_NULL_HANDLE;
+            return; // Skip further initialization if binding fails
+        }
+        
+        // Map and fill the vertex buffer
+        quint8 *crateVertPtr = nullptr;
+        err = mDeviceFunctions->vkMapMemory(logicalDevice, mCrateCubeBufferMemory, 0, crateBufInfo.size, 0, 
+                                         reinterpret_cast<void **>(&crateVertPtr));
+        if (err != VK_SUCCESS || crateVertPtr == nullptr) {
+            qDebug() << "WARNING: Failed to map CrateCube vertex memory: Error" << err;
+            mDeviceFunctions->vkDestroyBuffer(logicalDevice, mCrateCubeBuffer, nullptr);
+            mDeviceFunctions->vkFreeMemory(logicalDevice, mCrateCubeBufferMemory, nullptr);
+            mCrateCubeBuffer = VK_NULL_HANDLE;
+            mCrateCubeBufferMemory = VK_NULL_HANDLE;
+            return; // Skip further initialization if mapping fails
+        }
+        
+        memcpy(crateVertPtr, crateCubeVertices, sizeof(crateCubeVertices));
+        mDeviceFunctions->vkUnmapMemory(logicalDevice, mCrateCubeBufferMemory);
+        
+        // Create CrateCube index buffer
+        VkBufferCreateInfo crateIndexBufInfo = {};
+        crateIndexBufInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+        crateIndexBufInfo.size = sizeof(crateCubeIndices);
+        crateIndexBufInfo.usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+        
+        err = mDeviceFunctions->vkCreateBuffer(logicalDevice, &crateIndexBufInfo, nullptr, &mCrateCubeIndexBuffer);
+        if (err != VK_SUCCESS) {
+            qDebug() << "WARNING: Failed to create CrateCube index buffer: Error" << err;
+            mDeviceFunctions->vkDestroyBuffer(logicalDevice, mCrateCubeBuffer, nullptr);
+            mDeviceFunctions->vkFreeMemory(logicalDevice, mCrateCubeBufferMemory, nullptr);
+            mCrateCubeBuffer = VK_NULL_HANDLE;
+            mCrateCubeBufferMemory = VK_NULL_HANDLE;
+            mCrateCubeIndexBuffer = VK_NULL_HANDLE;
+            return; // Skip further initialization if index buffer creation fails
+        }
+        
+        VkMemoryRequirements crateIndexMemReq;
+        mDeviceFunctions->vkGetBufferMemoryRequirements(logicalDevice, mCrateCubeIndexBuffer, &crateIndexMemReq);
+        
+        VkMemoryAllocateInfo crateIndexAllocInfo = {
+            VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+            nullptr,
+            crateIndexMemReq.size,
+            mWindow->hostVisibleMemoryIndex()
+        };
+        
+        err = mDeviceFunctions->vkAllocateMemory(logicalDevice, &crateIndexAllocInfo, nullptr, &mCrateCubeIndexBufferMemory);
+        if (err != VK_SUCCESS) {
+            qDebug() << "WARNING: Failed to allocate CrateCube index buffer memory: Error" << err;
+            mDeviceFunctions->vkDestroyBuffer(logicalDevice, mCrateCubeBuffer, nullptr);
+            mDeviceFunctions->vkFreeMemory(logicalDevice, mCrateCubeBufferMemory, nullptr);
+            mDeviceFunctions->vkDestroyBuffer(logicalDevice, mCrateCubeIndexBuffer, nullptr);
+            mCrateCubeBuffer = VK_NULL_HANDLE;
+            mCrateCubeBufferMemory = VK_NULL_HANDLE;
+            mCrateCubeIndexBuffer = VK_NULL_HANDLE;
+            mCrateCubeIndexBufferMemory = VK_NULL_HANDLE;
+            return; // Skip further initialization if index memory allocation fails
+        }
+        
+        err = mDeviceFunctions->vkBindBufferMemory(logicalDevice, mCrateCubeIndexBuffer, mCrateCubeIndexBufferMemory, 0);
+        if (err != VK_SUCCESS) {
+            qDebug() << "WARNING: Failed to bind CrateCube index buffer memory: Error" << err;
+            mDeviceFunctions->vkDestroyBuffer(logicalDevice, mCrateCubeBuffer, nullptr);
+            mDeviceFunctions->vkFreeMemory(logicalDevice, mCrateCubeBufferMemory, nullptr);
+            mDeviceFunctions->vkDestroyBuffer(logicalDevice, mCrateCubeIndexBuffer, nullptr);
+            mDeviceFunctions->vkFreeMemory(logicalDevice, mCrateCubeIndexBufferMemory, nullptr);
+            mCrateCubeBuffer = VK_NULL_HANDLE;
+            mCrateCubeBufferMemory = VK_NULL_HANDLE;
+            mCrateCubeIndexBuffer = VK_NULL_HANDLE;
+            mCrateCubeIndexBufferMemory = VK_NULL_HANDLE;
+            return; // Skip further initialization if index binding fails
+        }
+        
+        // Map and fill the index buffer
+        quint8 *crateIndexPtr = nullptr;
+        err = mDeviceFunctions->vkMapMemory(logicalDevice, mCrateCubeIndexBufferMemory, 0, crateIndexBufInfo.size, 0, 
+                                         reinterpret_cast<void **>(&crateIndexPtr));
+        if (err != VK_SUCCESS || crateIndexPtr == nullptr) {
+            qDebug() << "WARNING: Failed to map CrateCube index memory: Error" << err;
+            mDeviceFunctions->vkDestroyBuffer(logicalDevice, mCrateCubeBuffer, nullptr);
+            mDeviceFunctions->vkFreeMemory(logicalDevice, mCrateCubeBufferMemory, nullptr);
+            mDeviceFunctions->vkDestroyBuffer(logicalDevice, mCrateCubeIndexBuffer, nullptr);
+            mDeviceFunctions->vkFreeMemory(logicalDevice, mCrateCubeIndexBufferMemory, nullptr);
+            mCrateCubeBuffer = VK_NULL_HANDLE;
+            mCrateCubeBufferMemory = VK_NULL_HANDLE;
+            mCrateCubeIndexBuffer = VK_NULL_HANDLE;
+            mCrateCubeIndexBufferMemory = VK_NULL_HANDLE;
+            return; // Skip further initialization if index mapping fails
+        }
+        
+        memcpy(crateIndexPtr, crateCubeIndices, sizeof(crateCubeIndices));
+        mDeviceFunctions->vkUnmapMemory(logicalDevice, mCrateCubeIndexBufferMemory);
+        
+        qDebug() << "CrateCube model loaded successfully with" << mCrateCubeIndexCount << "indices";
+    }
+    catch (const std::exception& e) {
+        qDebug() << "Exception during CrateCube initialization:" << e.what();
+        // Clean up any resources that might have been allocated
+        if (mCrateCubeBuffer != VK_NULL_HANDLE) {
+            mDeviceFunctions->vkDestroyBuffer(logicalDevice, mCrateCubeBuffer, nullptr);
+            mCrateCubeBuffer = VK_NULL_HANDLE;
+        }
+        if (mCrateCubeBufferMemory != VK_NULL_HANDLE) {
+            mDeviceFunctions->vkFreeMemory(logicalDevice, mCrateCubeBufferMemory, nullptr);
+            mCrateCubeBufferMemory = VK_NULL_HANDLE;
+        }
+        if (mCrateCubeIndexBuffer != VK_NULL_HANDLE) {
+            mDeviceFunctions->vkDestroyBuffer(logicalDevice, mCrateCubeIndexBuffer, nullptr);
+            mCrateCubeIndexBuffer = VK_NULL_HANDLE;
+        }
+        if (mCrateCubeIndexBufferMemory != VK_NULL_HANDLE) {
+            mDeviceFunctions->vkFreeMemory(logicalDevice, mCrateCubeIndexBufferMemory, nullptr);
+            mCrateCubeIndexBufferMemory = VK_NULL_HANDLE;
+        }
+    }
+
+    // Create house buffers
     qDebug() << "Created and initialized 3 separate NPC buffers with different colors";
 
     qDebug() << "Using simpler 'Game Over' notification through window title and debug messages";
@@ -1659,13 +1852,30 @@ void RenderWindow::drawOutdoorScene(VkDevice dev, VkCommandBuffer cb, quint8* GP
             mDeviceFunctions->vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1,
                                                    &mNPCDescriptorSet1[mWindow->currentFrame()], 0, nullptr);
             
-            // Bind the NPC1 vertex buffer (red)
-            VkDeviceSize npcVertexOffset = 0;
-            mDeviceFunctions->vkCmdBindVertexBuffers(cb, 0, 1, &mNPCBuffer1, &npcVertexOffset);
-            mDeviceFunctions->vkCmdDraw(cb, 36, 1, 0, 0);  // 36 vertices for cube
+            // Bind the CrateCube model buffer instead of NPC1 vertex buffer
+            // Add null check for CrateCube buffer
+            if (mCrateCubeBuffer != VK_NULL_HANDLE) {
+                VkDeviceSize npcVertexOffset = 0;
+                mDeviceFunctions->vkCmdBindVertexBuffers(cb, 0, 1, &mCrateCubeBuffer, &npcVertexOffset);
+                
+                // If the crate cube has an index buffer, use indexed drawing
+                if (mCrateCubeIndexBuffer != VK_NULL_HANDLE && mCrateCubeIndexCount > 0) {
+                    mDeviceFunctions->vkCmdBindIndexBuffer(cb, mCrateCubeIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+                    mDeviceFunctions->vkCmdDrawIndexed(cb, mCrateCubeIndexCount, 1, 0, 0, 0);
+                } else {
+                    // Fallback to non-indexed drawing if needed
+                    mDeviceFunctions->vkCmdDraw(cb, 36, 1, 0, 0);  // 36 vertices for cube
+                }
+            } else {
+                // Fallback to original NPC buffer if CrateCube buffer is null
+                VkDeviceSize npcVertexOffset = 0;
+                mDeviceFunctions->vkCmdBindVertexBuffers(cb, 0, 1, &mNPCBuffer1, &npcVertexOffset);
+                mDeviceFunctions->vkCmdDraw(cb, 36, 1, 0, 0);  // 36 vertices for cube
+                qDebug() << "WARNING: Using fallback NPC buffer for NPC 0 - CrateCube buffer was null";
+            }
             
             renderedNPCs++;
-            qDebug() << "Drew NPC 0 at position" << mNPCs[0].position << "with unique color";
+            qDebug() << "Drew NPC 0 (CrateCube) at position" << mNPCs[0].position;
         }
     }
     
@@ -1696,13 +1906,30 @@ void RenderWindow::drawOutdoorScene(VkDevice dev, VkCommandBuffer cb, quint8* GP
             mDeviceFunctions->vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1,
                                                    &mNPCDescriptorSet2[mWindow->currentFrame()], 0, nullptr);
             
-            // Bind the NPC2 vertex buffer (green)
-            VkDeviceSize npcVertexOffset = 0;
-            mDeviceFunctions->vkCmdBindVertexBuffers(cb, 0, 1, &mNPCBuffer2, &npcVertexOffset);
-            mDeviceFunctions->vkCmdDraw(cb, 36, 1, 0, 0);  // 36 vertices for cube
+            // Bind the CrateCube model buffer
+            // Add null check for CrateCube buffer
+            if (mCrateCubeBuffer != VK_NULL_HANDLE) {
+                VkDeviceSize npcVertexOffset = 0;
+                mDeviceFunctions->vkCmdBindVertexBuffers(cb, 0, 1, &mCrateCubeBuffer, &npcVertexOffset);
+                
+                // If the crate cube has an index buffer, use indexed drawing
+                if (mCrateCubeIndexBuffer != VK_NULL_HANDLE && mCrateCubeIndexCount > 0) {
+                    mDeviceFunctions->vkCmdBindIndexBuffer(cb, mCrateCubeIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+                    mDeviceFunctions->vkCmdDrawIndexed(cb, mCrateCubeIndexCount, 1, 0, 0, 0);
+                } else {
+                    // Fallback to non-indexed drawing if needed
+                    mDeviceFunctions->vkCmdDraw(cb, 36, 1, 0, 0);  // 36 vertices for cube
+                }
+            } else {
+                // Fallback to original NPC buffer if CrateCube buffer is null
+                VkDeviceSize npcVertexOffset = 0;
+                mDeviceFunctions->vkCmdBindVertexBuffers(cb, 0, 1, &mNPCBuffer2, &npcVertexOffset);
+                mDeviceFunctions->vkCmdDraw(cb, 36, 1, 0, 0);  // 36 vertices for cube
+                qDebug() << "WARNING: Using fallback NPC buffer for NPC 1 - CrateCube buffer was null";
+            }
             
             renderedNPCs++;
-            qDebug() << "Drew NPC 1 at position" << mNPCs[1].position << "with unique color";
+            qDebug() << "Drew NPC 1 (CrateCube) at position" << mNPCs[1].position;
         }
     }
     
@@ -1733,17 +1960,34 @@ void RenderWindow::drawOutdoorScene(VkDevice dev, VkCommandBuffer cb, quint8* GP
             mDeviceFunctions->vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1,
                                                    &mNPCDescriptorSet3[mWindow->currentFrame()], 0, nullptr);
             
-            // Bind the NPC3 vertex buffer (blue)
-            VkDeviceSize npcVertexOffset = 0;
-            mDeviceFunctions->vkCmdBindVertexBuffers(cb, 0, 1, &mNPCBuffer3, &npcVertexOffset);
-            mDeviceFunctions->vkCmdDraw(cb, 36, 1, 0, 0);  // 36 vertices for cube
+            // Bind the CrateCube model buffer
+            // Add null check for CrateCube buffer
+            if (mCrateCubeBuffer != VK_NULL_HANDLE) {
+                VkDeviceSize npcVertexOffset = 0;
+                mDeviceFunctions->vkCmdBindVertexBuffers(cb, 0, 1, &mCrateCubeBuffer, &npcVertexOffset);
+                
+                // If the crate cube has an index buffer, use indexed drawing
+                if (mCrateCubeIndexBuffer != VK_NULL_HANDLE && mCrateCubeIndexCount > 0) {
+                    mDeviceFunctions->vkCmdBindIndexBuffer(cb, mCrateCubeIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+                    mDeviceFunctions->vkCmdDrawIndexed(cb, mCrateCubeIndexCount, 1, 0, 0, 0);
+                } else {
+                    // Fallback to non-indexed drawing if needed
+                    mDeviceFunctions->vkCmdDraw(cb, 36, 1, 0, 0);  // 36 vertices for cube
+                }
+            } else {
+                // Fallback to original NPC buffer if CrateCube buffer is null
+                VkDeviceSize npcVertexOffset = 0;
+                mDeviceFunctions->vkCmdBindVertexBuffers(cb, 0, 1, &mNPCBuffer3, &npcVertexOffset);
+                mDeviceFunctions->vkCmdDraw(cb, 36, 1, 0, 0);  // 36 vertices for cube
+                qDebug() << "WARNING: Using fallback NPC buffer for NPC 2 - CrateCube buffer was null";
+            }
             
             renderedNPCs++;
-            qDebug() << "Drew NPC 2 at position" << mNPCs[2].position << "with unique color";
+            qDebug() << "Drew NPC 2 (CrateCube) at position" << mNPCs[2].position;
         }
     }
     
-    qDebug() << "Drew" << renderedNPCs << "NPCs with different colors";
+    qDebug() << "Drew" << renderedNPCs << "NPCs using CrateCube model";
 
     // Draw game over overlay if player has lost
     if (mGameLost) {
@@ -2283,6 +2527,36 @@ void RenderWindow::releaseResources()
         mDeviceFunctions->vkFreeDescriptorSets(dev, mDescriptorPool, 1, mHouseDescriptorSet);
         mHouseDescriptorSet[0] = VK_NULL_HANDLE;
     }
+
+    // Free NPC buffers
+    if (mNPCBuffer3 != VK_NULL_HANDLE) {
+        mDeviceFunctions->vkDestroyBuffer(dev, mNPCBuffer3, nullptr);
+        mNPCBuffer3 = VK_NULL_HANDLE;
+    }
+    if (mNPCBufferMemory3 != VK_NULL_HANDLE) {
+        mDeviceFunctions->vkFreeMemory(dev, mNPCBufferMemory3, nullptr);
+        mNPCBufferMemory3 = VK_NULL_HANDLE;
+    }
+    
+    // Free CrateCube resources
+    if (mCrateCubeBuffer != VK_NULL_HANDLE) {
+        mDeviceFunctions->vkDestroyBuffer(dev, mCrateCubeBuffer, nullptr);
+        mCrateCubeBuffer = VK_NULL_HANDLE;
+    }
+    if (mCrateCubeBufferMemory != VK_NULL_HANDLE) {
+        mDeviceFunctions->vkFreeMemory(dev, mCrateCubeBufferMemory, nullptr);
+        mCrateCubeBufferMemory = VK_NULL_HANDLE;
+    }
+    if (mCrateCubeIndexBuffer != VK_NULL_HANDLE) {
+        mDeviceFunctions->vkDestroyBuffer(dev, mCrateCubeIndexBuffer, nullptr);
+        mCrateCubeIndexBuffer = VK_NULL_HANDLE;
+    }
+    if (mCrateCubeIndexBufferMemory != VK_NULL_HANDLE) {
+        mDeviceFunctions->vkFreeMemory(dev, mCrateCubeIndexBufferMemory, nullptr);
+        mCrateCubeIndexBufferMemory = VK_NULL_HANDLE;
+    }
+
+    qDebug() << "Renderer resources released";
 
     qDebug("\n ***************************** releaseResources finished ******************************************* \n");
 }
