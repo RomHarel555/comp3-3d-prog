@@ -248,4 +248,26 @@ private:
     VkPipelineLayout mOverlayPipelineLayout = VK_NULL_HANDLE;
     VkShaderModule mOverlayVertShader = VK_NULL_HANDLE;
     VkShaderModule mOverlayFragShader = VK_NULL_HANDLE;
+
+    // Texture resources
+    VkImage mTextureImage = VK_NULL_HANDLE;
+    VkDeviceMemory mTextureImageMemory = VK_NULL_HANDLE;
+    VkImageView mTextureImageView = VK_NULL_HANDLE;
+    VkSampler mTextureSampler = VK_NULL_HANDLE;
+    VkCommandPool mTempCommandPool = VK_NULL_HANDLE;
+    
+    // Texture helper functions
+    void createTextureImage();
+    void createTextureImageView();
+    void createTextureSampler();
+    void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
+    void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
+    
+    // Utility functions
+    VkCommandBuffer beginSingleTimeCommands();
+    void endSingleTimeCommands(VkCommandBuffer commandBuffer);
+    void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, 
+                    VkImageUsageFlags usage, VkMemoryPropertyFlags properties, 
+                    VkImage& image, VkDeviceMemory& imageMemory);
+    VkImageView createImageView(VkImage image, VkFormat format);
 };

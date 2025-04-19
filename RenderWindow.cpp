@@ -1,4 +1,4 @@
-﻿#include "RenderWindow.h"
+#include "RenderWindow.h"
 #include <QVulkanFunctions>
 #include <QFile>
 #include "VulkanWindow.h"
@@ -1164,199 +1164,6 @@ void RenderWindow::initResources()
     memcpy(npcVertPtr3, npcVertexData3, sizeof(npcVertexData3));
     mDeviceFunctions->vkUnmapMemory(logicalDevice, mNPCBufferMemory3);
     
-    // Load CrateCube model for NPCs
-    qDebug() << "Loading CrateCube model for NPCs...";
-    
-    // Simple hardcoded vertices and indices for the crate cube (matching CrateCube.obj format)
-    // In a real application, you should parse the OBJ file properly
-    static const float crateCubeVertices[] = {
-        // Position (XYZ)     // Color (RGB) - brown-ish crate color
-        // 8 vertices of a cube
-        -1.0f, -1.0f,  1.0f,  0.8f, 0.5f, 0.2f,  // 0
-        -1.0f, -1.0f, -1.0f,  0.8f, 0.5f, 0.2f,  // 1
-         1.0f, -1.0f, -1.0f,  0.8f, 0.5f, 0.2f,  // 2
-         1.0f, -1.0f,  1.0f,  0.8f, 0.5f, 0.2f,  // 3
-        -1.0f,  1.0f,  1.0f,  0.8f, 0.5f, 0.2f,  // 4
-        -1.0f,  1.0f, -1.0f,  0.8f, 0.5f, 0.2f,  // 5
-         1.0f,  1.0f, -1.0f,  0.8f, 0.5f, 0.2f,  // 6
-         1.0f,  1.0f,  1.0f,  0.8f, 0.5f, 0.2f   // 7
-    };
-    
-    // Indices for the cube faces (6 faces, 2 triangles per face, 3 indices per triangle)
-    static const uint32_t crateCubeIndices[] = {
-        // Left side
-        4, 5, 1, 4, 1, 0,
-        // Back side
-        5, 6, 2, 5, 2, 1,
-        // Right side
-        6, 7, 3, 6, 3, 2,
-        // Front side
-        7, 4, 0, 7, 0, 3,
-        // Bottom
-        0, 1, 2, 0, 2, 3,
-        // Top
-        7, 6, 5, 7, 5, 4
-    };
-    
-    mCrateCubeIndexCount = sizeof(crateCubeIndices) / sizeof(crateCubeIndices[0]);
-    
-    // Create CrateCube vertex buffer
-    VkBufferCreateInfo crateBufInfo = {};
-    crateBufInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    crateBufInfo.size = sizeof(crateCubeVertices);
-    crateBufInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-    
-    try {
-        err = mDeviceFunctions->vkCreateBuffer(logicalDevice, &crateBufInfo, nullptr, &mCrateCubeBuffer);
-        if (err != VK_SUCCESS) {
-            qDebug() << "WARNING: Failed to create CrateCube buffer: Error" << err;
-            mCrateCubeBuffer = VK_NULL_HANDLE;
-            return; // Skip further initialization if buffer creation fails
-        }
-        
-        VkMemoryRequirements crateMemReq;
-        mDeviceFunctions->vkGetBufferMemoryRequirements(logicalDevice, mCrateCubeBuffer, &crateMemReq);
-        
-        VkMemoryAllocateInfo crateAllocInfo = {
-            VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-            nullptr,
-            crateMemReq.size,
-            mWindow->hostVisibleMemoryIndex()
-        };
-        
-        err = mDeviceFunctions->vkAllocateMemory(logicalDevice, &crateAllocInfo, nullptr, &mCrateCubeBufferMemory);
-        if (err != VK_SUCCESS) {
-            qDebug() << "WARNING: Failed to allocate CrateCube buffer memory: Error" << err;
-            mDeviceFunctions->vkDestroyBuffer(logicalDevice, mCrateCubeBuffer, nullptr);
-            mCrateCubeBuffer = VK_NULL_HANDLE;
-            mCrateCubeBufferMemory = VK_NULL_HANDLE;
-            return; // Skip further initialization if memory allocation fails
-        }
-        
-        err = mDeviceFunctions->vkBindBufferMemory(logicalDevice, mCrateCubeBuffer, mCrateCubeBufferMemory, 0);
-        if (err != VK_SUCCESS) {
-            qDebug() << "WARNING: Failed to bind CrateCube buffer memory: Error" << err;
-            mDeviceFunctions->vkDestroyBuffer(logicalDevice, mCrateCubeBuffer, nullptr);
-            mDeviceFunctions->vkFreeMemory(logicalDevice, mCrateCubeBufferMemory, nullptr);
-            mCrateCubeBuffer = VK_NULL_HANDLE;
-            mCrateCubeBufferMemory = VK_NULL_HANDLE;
-            return; // Skip further initialization if binding fails
-        }
-        
-        // Map and fill the vertex buffer
-        quint8 *crateVertPtr = nullptr;
-        err = mDeviceFunctions->vkMapMemory(logicalDevice, mCrateCubeBufferMemory, 0, crateBufInfo.size, 0, 
-                                         reinterpret_cast<void **>(&crateVertPtr));
-        if (err != VK_SUCCESS || crateVertPtr == nullptr) {
-            qDebug() << "WARNING: Failed to map CrateCube vertex memory: Error" << err;
-            mDeviceFunctions->vkDestroyBuffer(logicalDevice, mCrateCubeBuffer, nullptr);
-            mDeviceFunctions->vkFreeMemory(logicalDevice, mCrateCubeBufferMemory, nullptr);
-            mCrateCubeBuffer = VK_NULL_HANDLE;
-            mCrateCubeBufferMemory = VK_NULL_HANDLE;
-            return; // Skip further initialization if mapping fails
-        }
-        
-        memcpy(crateVertPtr, crateCubeVertices, sizeof(crateCubeVertices));
-        mDeviceFunctions->vkUnmapMemory(logicalDevice, mCrateCubeBufferMemory);
-        
-        // Create CrateCube index buffer
-        VkBufferCreateInfo crateIndexBufInfo = {};
-        crateIndexBufInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-        crateIndexBufInfo.size = sizeof(crateCubeIndices);
-        crateIndexBufInfo.usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
-        
-        err = mDeviceFunctions->vkCreateBuffer(logicalDevice, &crateIndexBufInfo, nullptr, &mCrateCubeIndexBuffer);
-        if (err != VK_SUCCESS) {
-            qDebug() << "WARNING: Failed to create CrateCube index buffer: Error" << err;
-            mDeviceFunctions->vkDestroyBuffer(logicalDevice, mCrateCubeBuffer, nullptr);
-            mDeviceFunctions->vkFreeMemory(logicalDevice, mCrateCubeBufferMemory, nullptr);
-            mCrateCubeBuffer = VK_NULL_HANDLE;
-            mCrateCubeBufferMemory = VK_NULL_HANDLE;
-            mCrateCubeIndexBuffer = VK_NULL_HANDLE;
-            return; // Skip further initialization if index buffer creation fails
-        }
-        
-        VkMemoryRequirements crateIndexMemReq;
-        mDeviceFunctions->vkGetBufferMemoryRequirements(logicalDevice, mCrateCubeIndexBuffer, &crateIndexMemReq);
-        
-        VkMemoryAllocateInfo crateIndexAllocInfo = {
-            VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-            nullptr,
-            crateIndexMemReq.size,
-            mWindow->hostVisibleMemoryIndex()
-        };
-        
-        err = mDeviceFunctions->vkAllocateMemory(logicalDevice, &crateIndexAllocInfo, nullptr, &mCrateCubeIndexBufferMemory);
-        if (err != VK_SUCCESS) {
-            qDebug() << "WARNING: Failed to allocate CrateCube index buffer memory: Error" << err;
-            mDeviceFunctions->vkDestroyBuffer(logicalDevice, mCrateCubeBuffer, nullptr);
-            mDeviceFunctions->vkFreeMemory(logicalDevice, mCrateCubeBufferMemory, nullptr);
-            mDeviceFunctions->vkDestroyBuffer(logicalDevice, mCrateCubeIndexBuffer, nullptr);
-            mCrateCubeBuffer = VK_NULL_HANDLE;
-            mCrateCubeBufferMemory = VK_NULL_HANDLE;
-            mCrateCubeIndexBuffer = VK_NULL_HANDLE;
-            mCrateCubeIndexBufferMemory = VK_NULL_HANDLE;
-            return; // Skip further initialization if index memory allocation fails
-        }
-        
-        err = mDeviceFunctions->vkBindBufferMemory(logicalDevice, mCrateCubeIndexBuffer, mCrateCubeIndexBufferMemory, 0);
-        if (err != VK_SUCCESS) {
-            qDebug() << "WARNING: Failed to bind CrateCube index buffer memory: Error" << err;
-            mDeviceFunctions->vkDestroyBuffer(logicalDevice, mCrateCubeBuffer, nullptr);
-            mDeviceFunctions->vkFreeMemory(logicalDevice, mCrateCubeBufferMemory, nullptr);
-            mDeviceFunctions->vkDestroyBuffer(logicalDevice, mCrateCubeIndexBuffer, nullptr);
-            mDeviceFunctions->vkFreeMemory(logicalDevice, mCrateCubeIndexBufferMemory, nullptr);
-            mCrateCubeBuffer = VK_NULL_HANDLE;
-            mCrateCubeBufferMemory = VK_NULL_HANDLE;
-            mCrateCubeIndexBuffer = VK_NULL_HANDLE;
-            mCrateCubeIndexBufferMemory = VK_NULL_HANDLE;
-            return; // Skip further initialization if index binding fails
-        }
-        
-        // Map and fill the index buffer
-        quint8 *crateIndexPtr = nullptr;
-        err = mDeviceFunctions->vkMapMemory(logicalDevice, mCrateCubeIndexBufferMemory, 0, crateIndexBufInfo.size, 0, 
-                                         reinterpret_cast<void **>(&crateIndexPtr));
-        if (err != VK_SUCCESS || crateIndexPtr == nullptr) {
-            qDebug() << "WARNING: Failed to map CrateCube index memory: Error" << err;
-            mDeviceFunctions->vkDestroyBuffer(logicalDevice, mCrateCubeBuffer, nullptr);
-            mDeviceFunctions->vkFreeMemory(logicalDevice, mCrateCubeBufferMemory, nullptr);
-            mDeviceFunctions->vkDestroyBuffer(logicalDevice, mCrateCubeIndexBuffer, nullptr);
-            mDeviceFunctions->vkFreeMemory(logicalDevice, mCrateCubeIndexBufferMemory, nullptr);
-            mCrateCubeBuffer = VK_NULL_HANDLE;
-            mCrateCubeBufferMemory = VK_NULL_HANDLE;
-            mCrateCubeIndexBuffer = VK_NULL_HANDLE;
-            mCrateCubeIndexBufferMemory = VK_NULL_HANDLE;
-            return; // Skip further initialization if index mapping fails
-        }
-        
-        memcpy(crateIndexPtr, crateCubeIndices, sizeof(crateCubeIndices));
-        mDeviceFunctions->vkUnmapMemory(logicalDevice, mCrateCubeIndexBufferMemory);
-        
-        qDebug() << "CrateCube model loaded successfully with" << mCrateCubeIndexCount << "indices";
-    }
-    catch (const std::exception& e) {
-        qDebug() << "Exception during CrateCube initialization:" << e.what();
-        // Clean up any resources that might have been allocated
-        if (mCrateCubeBuffer != VK_NULL_HANDLE) {
-            mDeviceFunctions->vkDestroyBuffer(logicalDevice, mCrateCubeBuffer, nullptr);
-            mCrateCubeBuffer = VK_NULL_HANDLE;
-        }
-        if (mCrateCubeBufferMemory != VK_NULL_HANDLE) {
-            mDeviceFunctions->vkFreeMemory(logicalDevice, mCrateCubeBufferMemory, nullptr);
-            mCrateCubeBufferMemory = VK_NULL_HANDLE;
-        }
-        if (mCrateCubeIndexBuffer != VK_NULL_HANDLE) {
-            mDeviceFunctions->vkDestroyBuffer(logicalDevice, mCrateCubeIndexBuffer, nullptr);
-            mCrateCubeIndexBuffer = VK_NULL_HANDLE;
-        }
-        if (mCrateCubeIndexBufferMemory != VK_NULL_HANDLE) {
-            mDeviceFunctions->vkFreeMemory(logicalDevice, mCrateCubeIndexBufferMemory, nullptr);
-            mCrateCubeIndexBufferMemory = VK_NULL_HANDLE;
-        }
-    }
-
-    // Create house buffers
     qDebug() << "Created and initialized 3 separate NPC buffers with different colors";
 
     qDebug() << "Using simpler 'Game Over' notification through window title and debug messages";
@@ -1590,7 +1397,7 @@ void RenderWindow::initResources()
 void RenderWindow::createIndoorSceneResources()
 {
     qDebug() << "Creating indoor scene resources...";
-    VkDevice dev = mWindow->device();
+    VkDevice device = mWindow->device();
     
     // Indoor room vertices (simple cube room)
     static const float indoorWallsVertexData[] = {
@@ -1653,63 +1460,63 @@ void RenderWindow::createIndoorSceneResources()
     bufInfo.size = sizeof(indoorWallsVertexData);
     bufInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
     
-    VkResult err = mDeviceFunctions->vkCreateBuffer(dev, &bufInfo, nullptr, &mIndoorWallsBuffer);
+    VkResult err = mDeviceFunctions->vkCreateBuffer(device, &bufInfo, nullptr, &mIndoorWallsBuffer);
     if (err != VK_SUCCESS) {
         qFatal("Failed to create indoor walls buffer: %d", err);
     }
     
     VkMemoryRequirements memReq;
-    mDeviceFunctions->vkGetBufferMemoryRequirements(dev, mIndoorWallsBuffer, &memReq);
+    mDeviceFunctions->vkGetBufferMemoryRequirements(device, mIndoorWallsBuffer, &memReq);
     
     VkMemoryAllocateInfo memAllocInfo = {};
     memAllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     memAllocInfo.allocationSize = memReq.size;
     memAllocInfo.memoryTypeIndex = mWindow->hostVisibleMemoryIndex();
     
-    err = mDeviceFunctions->vkAllocateMemory(dev, &memAllocInfo, nullptr, &mIndoorWallsBufferMemory);
+    err = mDeviceFunctions->vkAllocateMemory(device, &memAllocInfo, nullptr, &mIndoorWallsBufferMemory);
     if (err != VK_SUCCESS) {
         qFatal("Failed to allocate indoor walls memory: %d", err);
     }
     
-    err = mDeviceFunctions->vkBindBufferMemory(dev, mIndoorWallsBuffer, mIndoorWallsBufferMemory, 0);
+    err = mDeviceFunctions->vkBindBufferMemory(device, mIndoorWallsBuffer, mIndoorWallsBufferMemory, 0);
     if (err != VK_SUCCESS) {
         qFatal("Failed to bind indoor walls buffer memory: %d", err);
     }
     
     void* data;
-    err = mDeviceFunctions->vkMapMemory(dev, mIndoorWallsBufferMemory, 0, memReq.size, 0, &data);
+    err = mDeviceFunctions->vkMapMemory(device, mIndoorWallsBufferMemory, 0, memReq.size, 0, &data);
     if (err != VK_SUCCESS) {
         qFatal("Failed to map indoor walls buffer memory: %d", err);
     }
     memcpy(data, indoorWallsVertexData, sizeof(indoorWallsVertexData));
-    mDeviceFunctions->vkUnmapMemory(dev, mIndoorWallsBufferMemory);
+    mDeviceFunctions->vkUnmapMemory(device, mIndoorWallsBufferMemory);
     
     // Create exit door buffer
     bufInfo.size = sizeof(exitDoorVertexData);
-    err = mDeviceFunctions->vkCreateBuffer(dev, &bufInfo, nullptr, &mExitDoorBuffer);
+    err = mDeviceFunctions->vkCreateBuffer(device, &bufInfo, nullptr, &mExitDoorBuffer);
     if (err != VK_SUCCESS) {
         qFatal("Failed to create exit door buffer: %d", err);
     }
     
-    mDeviceFunctions->vkGetBufferMemoryRequirements(dev, mExitDoorBuffer, &memReq);
+    mDeviceFunctions->vkGetBufferMemoryRequirements(device, mExitDoorBuffer, &memReq);
     memAllocInfo.allocationSize = memReq.size;
     
-    err = mDeviceFunctions->vkAllocateMemory(dev, &memAllocInfo, nullptr, &mExitDoorBufferMemory);
+    err = mDeviceFunctions->vkAllocateMemory(device, &memAllocInfo, nullptr, &mExitDoorBufferMemory);
     if (err != VK_SUCCESS) {
         qFatal("Failed to allocate exit door memory: %d", err);
     }
     
-    err = mDeviceFunctions->vkBindBufferMemory(dev, mExitDoorBuffer, mExitDoorBufferMemory, 0);
+    err = mDeviceFunctions->vkBindBufferMemory(device, mExitDoorBuffer, mExitDoorBufferMemory, 0);
     if (err != VK_SUCCESS) {
         qFatal("Failed to bind exit door buffer memory: %d", err);
     }
     
-    err = mDeviceFunctions->vkMapMemory(dev, mExitDoorBufferMemory, 0, memReq.size, 0, &data);
+    err = mDeviceFunctions->vkMapMemory(device, mExitDoorBufferMemory, 0, memReq.size, 0, &data);
     if (err != VK_SUCCESS) {
         qFatal("Failed to map exit door buffer memory: %d", err);
     }
     memcpy(data, exitDoorVertexData, sizeof(exitDoorVertexData));
-    mDeviceFunctions->vkUnmapMemory(dev, mExitDoorBufferMemory);
+    mDeviceFunctions->vkUnmapMemory(device, mExitDoorBufferMemory);
     
     // Setup descriptor sets for indoor scene
     const int concurrentFrameCount = mWindow->concurrentFrameCount();
@@ -1723,7 +1530,7 @@ void RenderWindow::createIndoorSceneResources()
             1,
             &mDescriptorSetLayout
         };
-        err = mDeviceFunctions->vkAllocateDescriptorSets(dev, &descSetAllocInfo, &mIndoorDescriptorSet[i]);
+        err = mDeviceFunctions->vkAllocateDescriptorSets(device, &descSetAllocInfo, &mIndoorDescriptorSet[i]);
         if (err != VK_SUCCESS) {
             qFatal("Failed to allocate indoor descriptor set: %d", err);
         }
@@ -1735,13 +1542,13 @@ void RenderWindow::createIndoorSceneResources()
         descWrite.descriptorCount = 1;
         descWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
         descWrite.pBufferInfo = &mIndoorUniformBufferInfo[i];
-        mDeviceFunctions->vkUpdateDescriptorSets(dev, 1, &descWrite, 0, nullptr);
+        mDeviceFunctions->vkUpdateDescriptorSets(device, 1, &descWrite, 0, nullptr);
     }
     
     qDebug() << "Initialized indoor scene resources successfully";
 }
 
-void RenderWindow::drawOutdoorScene(VkDevice dev, VkCommandBuffer cb, quint8* GPUmemPointer, VkResult& err)
+void RenderWindow::drawOutdoorScene(VkDevice device, VkCommandBuffer cb, quint8* GPUmemPointer, VkResult& err)
 {
     // Draw ground
     QMatrix4x4 groundMatrix;
@@ -1750,10 +1557,10 @@ void RenderWindow::drawOutdoorScene(VkDevice dev, VkCommandBuffer cb, quint8* GP
 
     // Update uniform buffer for ground
     VkDeviceSize groundOffset = mUniformBufferInfo[mWindow->currentFrame()].offset;
-    err = mDeviceFunctions->vkMapMemory(dev, mBufferMemory, groundOffset,
+    err = mDeviceFunctions->vkMapMemory(device, mBufferMemory, groundOffset,
                                         UNIFORM_DATA_SIZE, 0, reinterpret_cast<void **>(&GPUmemPointer));
     memcpy(GPUmemPointer, groundMVP.constData(), 16 * sizeof(float));
-    mDeviceFunctions->vkUnmapMemory(dev, mBufferMemory);
+    mDeviceFunctions->vkUnmapMemory(device, mBufferMemory);
 
     // Draw ground
     mDeviceFunctions->vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1,
@@ -1773,10 +1580,10 @@ void RenderWindow::drawOutdoorScene(VkDevice dev, VkCommandBuffer cb, quint8* GP
 
     // Update player's uniform buffer
     VkDeviceSize playerOffset = mPlayerUniformBufferInfo[mWindow->currentFrame()].offset;
-    err = mDeviceFunctions->vkMapMemory(dev, mBufferMemory, playerOffset,
+    err = mDeviceFunctions->vkMapMemory(device, mBufferMemory, playerOffset,
                                        UNIFORM_DATA_SIZE, 0, reinterpret_cast<void **>(&GPUmemPointer));
     memcpy(GPUmemPointer, playerMVP.constData(), 16 * sizeof(float));
-    mDeviceFunctions->vkUnmapMemory(dev, mBufferMemory);
+    mDeviceFunctions->vkUnmapMemory(device, mBufferMemory);
 
     // Draw player cube
     mDeviceFunctions->vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1,
@@ -1804,10 +1611,10 @@ void RenderWindow::drawOutdoorScene(VkDevice dev, VkCommandBuffer cb, quint8* GP
             
             // Update collectible uniform buffer with this collectible's MVP
             QMatrix4x4 collectibleMVP = mProjectionMatrix * mViewMatrix * collectibleMatrix;
-            err = mDeviceFunctions->vkMapMemory(dev, mBufferMemory, mCollectibleUniformBufferInfo[mWindow->currentFrame()].offset,
+            err = mDeviceFunctions->vkMapMemory(device, mBufferMemory, mCollectibleUniformBufferInfo[mWindow->currentFrame()].offset,
                                              UNIFORM_DATA_SIZE, 0, reinterpret_cast<void **>(&GPUmemPointer));
             memcpy(GPUmemPointer, collectibleMVP.constData(), 16 * sizeof(float));
-            mDeviceFunctions->vkUnmapMemory(dev, mBufferMemory);
+            mDeviceFunctions->vkUnmapMemory(device, mBufferMemory);
             
             // Draw this collectible with correct descriptor set
             mDeviceFunctions->vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1,
@@ -1840,42 +1647,25 @@ void RenderWindow::drawOutdoorScene(VkDevice dev, VkCommandBuffer cb, quint8* GP
         
         // Use dedicated NPC1 buffer
         VkDeviceSize npcOffset1 = mNPCUniformBufferInfo1[mWindow->currentFrame()].offset;
-        err = mDeviceFunctions->vkMapMemory(dev, mBufferMemory, npcOffset1,
+        err = mDeviceFunctions->vkMapMemory(device, mBufferMemory, npcOffset1,
                                          UNIFORM_DATA_SIZE, 0, reinterpret_cast<void **>(&GPUmemPointer));
         if (err != VK_SUCCESS) {
             qDebug() << "Failed to map memory for NPC1 uniform buffer! Error:" << err;
         } else {
             memcpy(GPUmemPointer, npcMVP.constData(), 16 * sizeof(float));
-            mDeviceFunctions->vkUnmapMemory(dev, mBufferMemory);
+            mDeviceFunctions->vkUnmapMemory(device, mBufferMemory);
             
             // Use dedicated NPC1 descriptor set
             mDeviceFunctions->vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1,
                                                    &mNPCDescriptorSet1[mWindow->currentFrame()], 0, nullptr);
             
-            // Bind the CrateCube model buffer instead of NPC1 vertex buffer
-            // Add null check for CrateCube buffer
-            if (mCrateCubeBuffer != VK_NULL_HANDLE) {
-                VkDeviceSize npcVertexOffset = 0;
-                mDeviceFunctions->vkCmdBindVertexBuffers(cb, 0, 1, &mCrateCubeBuffer, &npcVertexOffset);
-                
-                // If the crate cube has an index buffer, use indexed drawing
-                if (mCrateCubeIndexBuffer != VK_NULL_HANDLE && mCrateCubeIndexCount > 0) {
-                    mDeviceFunctions->vkCmdBindIndexBuffer(cb, mCrateCubeIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
-                    mDeviceFunctions->vkCmdDrawIndexed(cb, mCrateCubeIndexCount, 1, 0, 0, 0);
-                } else {
-                    // Fallback to non-indexed drawing if needed
-                    mDeviceFunctions->vkCmdDraw(cb, 36, 1, 0, 0);  // 36 vertices for cube
-                }
-            } else {
-                // Fallback to original NPC buffer if CrateCube buffer is null
-                VkDeviceSize npcVertexOffset = 0;
-                mDeviceFunctions->vkCmdBindVertexBuffers(cb, 0, 1, &mNPCBuffer1, &npcVertexOffset);
-                mDeviceFunctions->vkCmdDraw(cb, 36, 1, 0, 0);  // 36 vertices for cube
-                qDebug() << "WARNING: Using fallback NPC buffer for NPC 0 - CrateCube buffer was null";
-            }
+            // Bind the NPC1 vertex buffer (red)
+            VkDeviceSize npcVertexOffset = 0;
+            mDeviceFunctions->vkCmdBindVertexBuffers(cb, 0, 1, &mNPCBuffer1, &npcVertexOffset);
+            mDeviceFunctions->vkCmdDraw(cb, 36, 1, 0, 0);  // 36 vertices for cube
             
             renderedNPCs++;
-            qDebug() << "Drew NPC 0 (CrateCube) at position" << mNPCs[0].position;
+            qDebug() << "Drew NPC 0 at position" << mNPCs[0].position << "with unique color";
         }
     }
     
@@ -1894,42 +1684,25 @@ void RenderWindow::drawOutdoorScene(VkDevice dev, VkCommandBuffer cb, quint8* GP
         
         // Use dedicated NPC2 buffer
         VkDeviceSize npcOffset2 = mNPCUniformBufferInfo2[mWindow->currentFrame()].offset;
-        err = mDeviceFunctions->vkMapMemory(dev, mBufferMemory, npcOffset2,
+        err = mDeviceFunctions->vkMapMemory(device, mBufferMemory, npcOffset2,
                                          UNIFORM_DATA_SIZE, 0, reinterpret_cast<void **>(&GPUmemPointer));
         if (err != VK_SUCCESS) {
             qDebug() << "Failed to map memory for NPC2 uniform buffer! Error:" << err;
         } else {
             memcpy(GPUmemPointer, npcMVP.constData(), 16 * sizeof(float));
-            mDeviceFunctions->vkUnmapMemory(dev, mBufferMemory);
+            mDeviceFunctions->vkUnmapMemory(device, mBufferMemory);
             
             // Use dedicated NPC2 descriptor set
             mDeviceFunctions->vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1,
                                                    &mNPCDescriptorSet2[mWindow->currentFrame()], 0, nullptr);
             
-            // Bind the CrateCube model buffer
-            // Add null check for CrateCube buffer
-            if (mCrateCubeBuffer != VK_NULL_HANDLE) {
-                VkDeviceSize npcVertexOffset = 0;
-                mDeviceFunctions->vkCmdBindVertexBuffers(cb, 0, 1, &mCrateCubeBuffer, &npcVertexOffset);
-                
-                // If the crate cube has an index buffer, use indexed drawing
-                if (mCrateCubeIndexBuffer != VK_NULL_HANDLE && mCrateCubeIndexCount > 0) {
-                    mDeviceFunctions->vkCmdBindIndexBuffer(cb, mCrateCubeIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
-                    mDeviceFunctions->vkCmdDrawIndexed(cb, mCrateCubeIndexCount, 1, 0, 0, 0);
-                } else {
-                    // Fallback to non-indexed drawing if needed
-                    mDeviceFunctions->vkCmdDraw(cb, 36, 1, 0, 0);  // 36 vertices for cube
-                }
-            } else {
-                // Fallback to original NPC buffer if CrateCube buffer is null
-                VkDeviceSize npcVertexOffset = 0;
-                mDeviceFunctions->vkCmdBindVertexBuffers(cb, 0, 1, &mNPCBuffer2, &npcVertexOffset);
-                mDeviceFunctions->vkCmdDraw(cb, 36, 1, 0, 0);  // 36 vertices for cube
-                qDebug() << "WARNING: Using fallback NPC buffer for NPC 1 - CrateCube buffer was null";
-            }
+            // Bind the NPC2 vertex buffer (green)
+            VkDeviceSize npcVertexOffset = 0;
+            mDeviceFunctions->vkCmdBindVertexBuffers(cb, 0, 1, &mNPCBuffer2, &npcVertexOffset);
+            mDeviceFunctions->vkCmdDraw(cb, 36, 1, 0, 0);  // 36 vertices for cube
             
             renderedNPCs++;
-            qDebug() << "Drew NPC 1 (CrateCube) at position" << mNPCs[1].position;
+            qDebug() << "Drew NPC 1 at position" << mNPCs[1].position << "with unique color";
         }
     }
     
@@ -1948,46 +1721,29 @@ void RenderWindow::drawOutdoorScene(VkDevice dev, VkCommandBuffer cb, quint8* GP
         
         // Use dedicated NPC3 buffer
         VkDeviceSize npcOffset3 = mNPCUniformBufferInfo3[mWindow->currentFrame()].offset;
-        err = mDeviceFunctions->vkMapMemory(dev, mBufferMemory, npcOffset3,
+        err = mDeviceFunctions->vkMapMemory(device, mBufferMemory, npcOffset3,
                                          UNIFORM_DATA_SIZE, 0, reinterpret_cast<void **>(&GPUmemPointer));
         if (err != VK_SUCCESS) {
             qDebug() << "Failed to map memory for NPC3 uniform buffer! Error:" << err;
         } else {
             memcpy(GPUmemPointer, npcMVP.constData(), 16 * sizeof(float));
-            mDeviceFunctions->vkUnmapMemory(dev, mBufferMemory);
+            mDeviceFunctions->vkUnmapMemory(device, mBufferMemory);
             
             // Use dedicated NPC3 descriptor set
             mDeviceFunctions->vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1,
                                                    &mNPCDescriptorSet3[mWindow->currentFrame()], 0, nullptr);
             
-            // Bind the CrateCube model buffer
-            // Add null check for CrateCube buffer
-            if (mCrateCubeBuffer != VK_NULL_HANDLE) {
-                VkDeviceSize npcVertexOffset = 0;
-                mDeviceFunctions->vkCmdBindVertexBuffers(cb, 0, 1, &mCrateCubeBuffer, &npcVertexOffset);
-                
-                // If the crate cube has an index buffer, use indexed drawing
-                if (mCrateCubeIndexBuffer != VK_NULL_HANDLE && mCrateCubeIndexCount > 0) {
-                    mDeviceFunctions->vkCmdBindIndexBuffer(cb, mCrateCubeIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
-                    mDeviceFunctions->vkCmdDrawIndexed(cb, mCrateCubeIndexCount, 1, 0, 0, 0);
-                } else {
-                    // Fallback to non-indexed drawing if needed
-                    mDeviceFunctions->vkCmdDraw(cb, 36, 1, 0, 0);  // 36 vertices for cube
-                }
-            } else {
-                // Fallback to original NPC buffer if CrateCube buffer is null
-                VkDeviceSize npcVertexOffset = 0;
-                mDeviceFunctions->vkCmdBindVertexBuffers(cb, 0, 1, &mNPCBuffer3, &npcVertexOffset);
-                mDeviceFunctions->vkCmdDraw(cb, 36, 1, 0, 0);  // 36 vertices for cube
-                qDebug() << "WARNING: Using fallback NPC buffer for NPC 2 - CrateCube buffer was null";
-            }
+            // Bind the NPC3 vertex buffer (blue)
+            VkDeviceSize npcVertexOffset = 0;
+            mDeviceFunctions->vkCmdBindVertexBuffers(cb, 0, 1, &mNPCBuffer3, &npcVertexOffset);
+            mDeviceFunctions->vkCmdDraw(cb, 36, 1, 0, 0);  // 36 vertices for cube
             
             renderedNPCs++;
-            qDebug() << "Drew NPC 2 (CrateCube) at position" << mNPCs[2].position;
+            qDebug() << "Drew NPC 2 at position" << mNPCs[2].position << "with unique color";
         }
     }
     
-    qDebug() << "Drew" << renderedNPCs << "NPCs using CrateCube model";
+    qDebug() << "Drew" << renderedNPCs << "NPCs with different colors";
 
     // Draw game over overlay if player has lost
     if (mGameLost) {
@@ -2007,13 +1763,13 @@ void RenderWindow::drawOutdoorScene(VkDevice dev, VkCommandBuffer cb, quint8* GP
     QMatrix4x4 houseMVP = mProjectionMatrix * mViewMatrix * houseMatrix;
 
     // Update house uniform buffer
-    err = mDeviceFunctions->vkMapMemory(dev, mBufferMemory, mHouseUniformBufferInfo[mWindow->currentFrame()].offset,
+    err = mDeviceFunctions->vkMapMemory(device, mBufferMemory, mHouseUniformBufferInfo[mWindow->currentFrame()].offset,
                                      UNIFORM_DATA_SIZE, 0, reinterpret_cast<void **>(&GPUmemPointer));
     if (err != VK_SUCCESS) {
         qDebug() << "Failed to map memory for house uniform buffer! Error:" << err;
     } else {
         memcpy(GPUmemPointer, houseMVP.constData(), 16 * sizeof(float));
-        mDeviceFunctions->vkUnmapMemory(dev, mBufferMemory);
+        mDeviceFunctions->vkUnmapMemory(device, mBufferMemory);
 
         // Bind house descriptor set
         mDeviceFunctions->vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1,
@@ -2045,7 +1801,7 @@ void RenderWindow::drawOutdoorScene(VkDevice dev, VkCommandBuffer cb, quint8* GP
     }
 }
 
-void RenderWindow::drawIndoorScene(VkDevice dev, VkCommandBuffer cb, quint8* GPUmemPointer, VkResult& err)
+void RenderWindow::drawIndoorScene(VkDevice device, VkCommandBuffer cb, quint8* GPUmemPointer, VkResult& err)
 {
     // Set a different clear color for indoor scene
     VkClearColorValue indoorClearColor = {{ 0.4f, 0.4f, 0.6f, 1.0f }}; // Light blue-gray indoor lighting
@@ -2071,10 +1827,10 @@ void RenderWindow::drawIndoorScene(VkDevice dev, VkCommandBuffer cb, quint8* GPU
 
     // Update uniform buffer for ground
     VkDeviceSize groundOffset = mUniformBufferInfo[mWindow->currentFrame()].offset;
-    err = mDeviceFunctions->vkMapMemory(dev, mBufferMemory, groundOffset,
+    err = mDeviceFunctions->vkMapMemory(device, mBufferMemory, groundOffset,
                                         UNIFORM_DATA_SIZE, 0, reinterpret_cast<void **>(&GPUmemPointer));
     memcpy(GPUmemPointer, groundMVP.constData(), 16 * sizeof(float));
-    mDeviceFunctions->vkUnmapMemory(dev, mBufferMemory);
+    mDeviceFunctions->vkUnmapMemory(device, mBufferMemory);
 
     // Draw indoor floor (reusing ground buffer for simplicity)
     mDeviceFunctions->vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1,
@@ -2096,10 +1852,10 @@ void RenderWindow::drawIndoorScene(VkDevice dev, VkCommandBuffer cb, quint8* GPU
         
         // Update collectible uniform buffer
         QMatrix4x4 collectibleMVP = mProjectionMatrix * mViewMatrix * collectibleMatrix;
-        err = mDeviceFunctions->vkMapMemory(dev, mBufferMemory, mCollectibleUniformBufferInfo[mWindow->currentFrame()].offset,
+        err = mDeviceFunctions->vkMapMemory(device, mBufferMemory, mCollectibleUniformBufferInfo[mWindow->currentFrame()].offset,
                                          UNIFORM_DATA_SIZE, 0, reinterpret_cast<void **>(&GPUmemPointer));
         memcpy(GPUmemPointer, collectibleMVP.constData(), 16 * sizeof(float));
-        mDeviceFunctions->vkUnmapMemory(dev, mBufferMemory);
+        mDeviceFunctions->vkUnmapMemory(device, mBufferMemory);
         
         // Draw the indoor collectible with golden color
         mDeviceFunctions->vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1,
@@ -2120,10 +1876,10 @@ void RenderWindow::drawIndoorScene(VkDevice dev, VkCommandBuffer cb, quint8* GPU
 
     // Update player's uniform buffer
     VkDeviceSize playerOffset = mPlayerUniformBufferInfo[mWindow->currentFrame()].offset;
-    err = mDeviceFunctions->vkMapMemory(dev, mBufferMemory, playerOffset,
+    err = mDeviceFunctions->vkMapMemory(device, mBufferMemory, playerOffset,
                                        UNIFORM_DATA_SIZE, 0, reinterpret_cast<void **>(&GPUmemPointer));
     memcpy(GPUmemPointer, playerMVP.constData(), 16 * sizeof(float));
-    mDeviceFunctions->vkUnmapMemory(dev, mBufferMemory);
+    mDeviceFunctions->vkUnmapMemory(device, mBufferMemory);
 
     // Draw player cube
     mDeviceFunctions->vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1,
@@ -2143,25 +1899,6 @@ void RenderWindow::drawIndoorScene(VkDevice dev, VkCommandBuffer cb, quint8* GPU
 
 void RenderWindow::startNextFrame()
 {
-    // First, always check if all collectibles have been collected
-    if (mCollectedCount == getTotalCollectibles() && mCollectedCount > 0) {
-        // Force the game won state
-        if (!mGameWon) {
-            mGameWon = true;
-            
-            // Display very visible win message 
-            qDebug() << "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!";
-            qDebug() << "!!                YOU WON!                    !!";
-            qDebug() << "!!     ALL COLLECTIBLES FOUND: " << mCollectedCount << " of " << getTotalCollectibles() << "   !!";
-            qDebug() << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!";
-            
-            // Update game UI
-            if (VulkanWindow* vulkanWindow = qobject_cast<VulkanWindow*>(mWindow)) {
-                vulkanWindow->updateGameStatus(VulkanWindow::GameStatus::Won);
-            }
-        }
-    }
-    
     // Update NPC positions
     updateNPCs();
     
@@ -2203,13 +1940,6 @@ void RenderWindow::startNextFrame()
         qDebug() << "*************************************************\n";
     }
     
-    // Print collection status every 30 frames
-    if (mFrameCount % 30 == 0) {
-        qDebug() << "COLLECTION STATUS: " << mCollectedCount << " of " << getTotalCollectibles() 
-                 << " collected. GameWon=" << (mGameWon ? "true" : "false");
-    }
-    mFrameCount++;
-    
     // Always check for win condition (in case it was missed during collection)
     if (!mGameLost && mCollectedCount > 0) {
         checkGameWinCondition();
@@ -2230,7 +1960,7 @@ void RenderWindow::startNextFrame()
     mViewMatrix = viewMatrix;
     mProjectionMatrix = projectionMatrix;
 
-    VkDevice dev = mWindow->device();
+    VkDevice device = mWindow->device();
     VkCommandBuffer cb = mWindow->currentCommandBuffer();
     const QSize sz = mWindow->swapChainImageSize();
 
@@ -2276,10 +2006,10 @@ void RenderWindow::startNextFrame()
     // Draw the appropriate scene based on current scene value
     if (mCurrentScene == 1) {
         // Draw outdoor scene
-        drawOutdoorScene(dev, cb, GPUmemPointer, err);
+        drawOutdoorScene(device, cb, GPUmemPointer, err);
     } else {
         // Draw indoor scene
-        drawIndoorScene(dev, cb, GPUmemPointer, err);
+        drawIndoorScene(device, cb, GPUmemPointer, err);
     }
     
     // Debug output to confirm render pass status
@@ -2381,42 +2111,42 @@ void RenderWindow::releaseResources()
 {
     qDebug("\n ***************************** releaseResources ******************************************* \n");
 
-    VkDevice dev = mWindow->device();
+    VkDevice device = mWindow->device();
 
     if (mPipeline) {
-        mDeviceFunctions->vkDestroyPipeline(dev, mPipeline, nullptr);
+        mDeviceFunctions->vkDestroyPipeline(device, mPipeline, nullptr);
         mPipeline = VK_NULL_HANDLE;
     }
 
     if (mPipelineLayout) {
-        mDeviceFunctions->vkDestroyPipelineLayout(dev, mPipelineLayout, nullptr);
+        mDeviceFunctions->vkDestroyPipelineLayout(device, mPipelineLayout, nullptr);
         mPipelineLayout = VK_NULL_HANDLE;
     }
 
     if (mPipelineCache) {
-        mDeviceFunctions->vkDestroyPipelineCache(dev, mPipelineCache, nullptr);
+        mDeviceFunctions->vkDestroyPipelineCache(device, mPipelineCache, nullptr);
         mPipelineCache = VK_NULL_HANDLE;
     }
 
     if (mDescriptorSetLayout) {
-        mDeviceFunctions->vkDestroyDescriptorSetLayout(dev, mDescriptorSetLayout, nullptr);
+        mDeviceFunctions->vkDestroyDescriptorSetLayout(device, mDescriptorSetLayout, nullptr);
         mDescriptorSetLayout = VK_NULL_HANDLE;
     }
 
     if (mDescriptorPool) {
         // Note: Destroying the descriptor pool automatically frees all descriptor sets
         // allocated from it (both mDescriptorSet and mPlayerDescriptorSet)
-        mDeviceFunctions->vkDestroyDescriptorPool(dev, mDescriptorPool, nullptr);
+        mDeviceFunctions->vkDestroyDescriptorPool(device, mDescriptorPool, nullptr);
         mDescriptorPool = VK_NULL_HANDLE;
     }
 
     if (mBuffer) {
-        mDeviceFunctions->vkDestroyBuffer(dev, mBuffer, nullptr);
+        mDeviceFunctions->vkDestroyBuffer(device, mBuffer, nullptr);
         mBuffer = VK_NULL_HANDLE;
     }
 
     if (mBufferMemory) {
-        mDeviceFunctions->vkFreeMemory(dev, mBufferMemory, nullptr);
+        mDeviceFunctions->vkFreeMemory(device, mBufferMemory, nullptr);
         mBufferMemory = VK_NULL_HANDLE;
     }
 
@@ -2451,38 +2181,38 @@ void RenderWindow::releaseResources()
     }
 
     if (mNPCBuffer) {
-        mDeviceFunctions->vkDestroyBuffer(dev, mNPCBuffer, nullptr);
+        mDeviceFunctions->vkDestroyBuffer(device, mNPCBuffer, nullptr);
         mNPCBuffer = VK_NULL_HANDLE;
     }
 
     if (mNPCBufferMemory) {
-        mDeviceFunctions->vkFreeMemory(dev, mNPCBufferMemory, nullptr);
+        mDeviceFunctions->vkFreeMemory(device, mNPCBufferMemory, nullptr);
         mNPCBufferMemory = VK_NULL_HANDLE;
     }
     
     // Free new NPC colored buffers
     if (mNPCBuffer1) {
-        mDeviceFunctions->vkDestroyBuffer(dev, mNPCBuffer1, nullptr);
+        mDeviceFunctions->vkDestroyBuffer(device, mNPCBuffer1, nullptr);
         mNPCBuffer1 = VK_NULL_HANDLE;
     }
 
     if (mNPCBufferMemory1) {
-        mDeviceFunctions->vkFreeMemory(dev, mNPCBufferMemory1, nullptr);
+        mDeviceFunctions->vkFreeMemory(device, mNPCBufferMemory1, nullptr);
         mNPCBufferMemory1 = VK_NULL_HANDLE;
     }
     
     if (mNPCBuffer2) {
-        mDeviceFunctions->vkDestroyBuffer(dev, mNPCBuffer2, nullptr);
+        mDeviceFunctions->vkDestroyBuffer(device, mNPCBuffer2, nullptr);
         mNPCBuffer2 = VK_NULL_HANDLE;
     }
 
     if (mNPCBufferMemory2) {
-        mDeviceFunctions->vkFreeMemory(dev, mNPCBufferMemory2, nullptr);
+        mDeviceFunctions->vkFreeMemory(device, mNPCBufferMemory2, nullptr);
         mNPCBufferMemory2 = VK_NULL_HANDLE;
     }
     
     if (mNPCBuffer3) {
-        mDeviceFunctions->vkDestroyBuffer(dev, mNPCBuffer3, nullptr);
+        mDeviceFunctions->vkDestroyBuffer(device, mNPCBuffer3, nullptr);
         mNPCBuffer3 = VK_NULL_HANDLE;
     }
 
@@ -2493,70 +2223,40 @@ void RenderWindow::releaseResources()
 
     // Free house buffers
     if (mHouseWallsBuffer) {
-        mDeviceFunctions->vkDestroyBuffer(dev, mHouseWallsBuffer, nullptr);
+        mDeviceFunctions->vkDestroyBuffer(device, mHouseWallsBuffer, nullptr);
         mHouseWallsBuffer = VK_NULL_HANDLE;
     }
 
     if (mHouseWallsBufferMemory) {
-        mDeviceFunctions->vkFreeMemory(dev, mHouseWallsBufferMemory, nullptr);
+        mDeviceFunctions->vkFreeMemory(device, mHouseWallsBufferMemory, nullptr);
         mHouseWallsBufferMemory = VK_NULL_HANDLE;
     }
 
     if (mHouseDoorBuffer) {
-        mDeviceFunctions->vkDestroyBuffer(dev, mHouseDoorBuffer, nullptr);
+        mDeviceFunctions->vkDestroyBuffer(device, mHouseDoorBuffer, nullptr);
         mHouseDoorBuffer = VK_NULL_HANDLE;
     }
 
     if (mHouseDoorBufferMemory) {
-        mDeviceFunctions->vkFreeMemory(dev, mHouseDoorBufferMemory, nullptr);
+        mDeviceFunctions->vkFreeMemory(device, mHouseDoorBufferMemory, nullptr);
         mHouseDoorBufferMemory = VK_NULL_HANDLE;
     }
 
     if (mHouseRoofBuffer) {
-        mDeviceFunctions->vkDestroyBuffer(dev, mHouseRoofBuffer, nullptr);
+        mDeviceFunctions->vkDestroyBuffer(device, mHouseRoofBuffer, nullptr);
         mHouseRoofBuffer = VK_NULL_HANDLE;
     }
 
     if (mHouseRoofBufferMemory) {
-        mDeviceFunctions->vkFreeMemory(dev, mHouseRoofBufferMemory, nullptr);
+        mDeviceFunctions->vkFreeMemory(device, mHouseRoofBufferMemory, nullptr);
         mHouseRoofBufferMemory = VK_NULL_HANDLE;
     }
 
     // Free house descriptor sets
     if (mHouseDescriptorSet[0]) {
-        mDeviceFunctions->vkFreeDescriptorSets(dev, mDescriptorPool, 1, mHouseDescriptorSet);
+        mDeviceFunctions->vkFreeDescriptorSets(device, mDescriptorPool, 1, mHouseDescriptorSet);
         mHouseDescriptorSet[0] = VK_NULL_HANDLE;
     }
-
-    // Free NPC buffers
-    if (mNPCBuffer3 != VK_NULL_HANDLE) {
-        mDeviceFunctions->vkDestroyBuffer(dev, mNPCBuffer3, nullptr);
-        mNPCBuffer3 = VK_NULL_HANDLE;
-    }
-    if (mNPCBufferMemory3 != VK_NULL_HANDLE) {
-        mDeviceFunctions->vkFreeMemory(dev, mNPCBufferMemory3, nullptr);
-        mNPCBufferMemory3 = VK_NULL_HANDLE;
-    }
-    
-    // Free CrateCube resources
-    if (mCrateCubeBuffer != VK_NULL_HANDLE) {
-        mDeviceFunctions->vkDestroyBuffer(dev, mCrateCubeBuffer, nullptr);
-        mCrateCubeBuffer = VK_NULL_HANDLE;
-    }
-    if (mCrateCubeBufferMemory != VK_NULL_HANDLE) {
-        mDeviceFunctions->vkFreeMemory(dev, mCrateCubeBufferMemory, nullptr);
-        mCrateCubeBufferMemory = VK_NULL_HANDLE;
-    }
-    if (mCrateCubeIndexBuffer != VK_NULL_HANDLE) {
-        mDeviceFunctions->vkDestroyBuffer(dev, mCrateCubeIndexBuffer, nullptr);
-        mCrateCubeIndexBuffer = VK_NULL_HANDLE;
-    }
-    if (mCrateCubeIndexBufferMemory != VK_NULL_HANDLE) {
-        mDeviceFunctions->vkFreeMemory(dev, mCrateCubeIndexBufferMemory, nullptr);
-        mCrateCubeIndexBufferMemory = VK_NULL_HANDLE;
-    }
-
-    qDebug() << "Renderer resources released";
 
     qDebug("\n ***************************** releaseResources finished ******************************************* \n");
 }
@@ -2603,19 +2303,8 @@ void RenderWindow::checkCollectibleCollisions()
                 qDebug() << "COLLECTED: item at position" << mCollectibles[i].position << "!"
                          << mCollectedCount << "of" << getTotalCollectibles() << "collected";
                 
-                // Check if all collectibles are collected immediately - set game won state
-                if (mCollectedCount == getTotalCollectibles()) {
-                    mGameWon = true;
-                    qDebug() << "\n*************************************************";
-                    qDebug() << "***               YOU WON!                    ***";
-                    qDebug() << "***     All collectibles have been found!     ***";
-                    qDebug() << "*************************************************\n";
-                    
-                    // Update UI to show win status
-                    if (VulkanWindow* vulkanWindow = qobject_cast<VulkanWindow*>(mWindow)) {
-                        vulkanWindow->updateGameStatus(VulkanWindow::GameStatus::Won);
-                    }
-                }
+                // Check if all collectibles (including indoor) are collected
+                checkGameWinCondition();
             }
         }
     }
@@ -2630,7 +2319,7 @@ void RenderWindow::checkCollectibleCollisions()
 
 void RenderWindow::updateUniformBuffer(VkDescriptorBufferInfo &bufferInfo, const QMatrix4x4 &matrix)
 {
-    VkDevice dev = mWindow->device();
+    VkDevice device = mWindow->device();
     QMatrix4x4 mvp = mProjectionMatrix * mViewMatrix * matrix;
     
     // Check if bufferInfo is valid
@@ -2640,7 +2329,7 @@ void RenderWindow::updateUniformBuffer(VkDescriptorBufferInfo &bufferInfo, const
     }
     
     quint8* GPUmemPointer;
-    VkResult err = mDeviceFunctions->vkMapMemory(dev, mBufferMemory, bufferInfo.offset,
+    VkResult err = mDeviceFunctions->vkMapMemory(device, mBufferMemory, bufferInfo.offset,
                                              UNIFORM_DATA_SIZE, 0, reinterpret_cast<void **>(&GPUmemPointer));
     if (err != VK_SUCCESS) {
         qDebug() << "Failed to map memory for uniform buffer! Error:" << err;
@@ -2648,7 +2337,7 @@ void RenderWindow::updateUniformBuffer(VkDescriptorBufferInfo &bufferInfo, const
     }
     
     memcpy(GPUmemPointer, mvp.constData(), 16 * sizeof(float));
-    mDeviceFunctions->vkUnmapMemory(dev, mBufferMemory);
+    mDeviceFunctions->vkUnmapMemory(device, mBufferMemory);
 }
 
 void RenderWindow::initializeNPCs()
@@ -2871,11 +2560,11 @@ void RenderWindow::updateDoorState(bool open)
     mDoorOpen = open;
     
     // Update door buffer with appropriate vertex data
-    VkDevice dev = mWindow->device();
+    VkDevice device = mWindow->device();
     
     // Map the door buffer memory
     void* doorData;
-    VkResult err = mDeviceFunctions->vkMapMemory(dev, mHouseDoorBufferMemory, 0, 
+    VkResult err = mDeviceFunctions->vkMapMemory(device, mHouseDoorBufferMemory, 0, 
                                                 sizeof(houseDoorVertexData), 0, &doorData);
     if (err != VK_SUCCESS) {
         qDebug() << "Failed to map door memory! Error:" << err;
@@ -2892,7 +2581,7 @@ void RenderWindow::updateDoorState(bool open)
     }
     
     // Unmap the memory
-    mDeviceFunctions->vkUnmapMemory(dev, mHouseDoorBufferMemory);
+    mDeviceFunctions->vkUnmapMemory(device, mHouseDoorBufferMemory);
     
     // Request a redraw to show the updated door state
     if (mWindow) {
@@ -2957,19 +2646,8 @@ void RenderWindow::checkIndoorCollectibleCollision()
         qDebug() << "*** SPECIAL INDOOR COLLECTIBLE COLLECTED! ***";
         qDebug() << "Total collectibles:" << mCollectedCount << "of" << getTotalCollectibles();
         
-        // Check if all collectibles are collected - set game won state
-        if (mCollectedCount == getTotalCollectibles()) {
-            mGameWon = true;
-            qDebug() << "\n*************************************************";
-            qDebug() << "***               YOU WON!                    ***";
-            qDebug() << "***     All collectibles have been found!     ***";
-            qDebug() << "*************************************************\n";
-            
-            // Update UI to show win status
-            if (VulkanWindow* vulkanWindow = qobject_cast<VulkanWindow*>(mWindow)) {
-                vulkanWindow->updateGameStatus(VulkanWindow::GameStatus::Won);
-            }
-        }
+        // Check if all collectibles are collected
+        checkGameWinCondition();
         
         // Request update to refresh rendering
         if (mWindow) {
@@ -3008,4 +2686,9 @@ void RenderWindow::checkGameWinCondition()
         }
     }
 }
+
+
+
+
+
 
