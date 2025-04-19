@@ -30,7 +30,7 @@ static float playerVertexData[] = {
      0.8f, -0.8f,  0.8f,   0.0f, 0.0f, 1.0f,   1.0f, 0.0f,  // Bottom-right
 
     // Back face
-    -0.8f, -0.8f, -0.8f,   0.0f, 0.0f, 1.0f,   1.0f, 0.0f,  // Bottom-right
+    -0.8f, -0.7f, -0.7f,   0.0f, 0.0f, 1.0f,   1.0f, 0.0f,  // Bottom-right
      0.7f, -0.7f, -0.7f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,  // Bottom-left
     -0.7f,  0.7f, -0.7f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f,  // Top-right
      0.7f,  0.7f, -0.7f,   0.0f, 0.0f, 1.0f,   0.0f, 1.0f,  // Top-left
@@ -38,11 +38,11 @@ static float playerVertexData[] = {
      0.7f, -0.7f, -0.7f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,  // Bottom-left
 
     // Left face
-    -0.8f, -0.8f, -0.8f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,  // Bottom-left
-    -0.8f, -0.8f,  0.8f,   0.0f, 0.0f, 1.0f,   1.0f, 0.0f,  // Bottom-right
-    -0.8f,  0.8f, -0.8f,   0.0f, 0.0f, 1.0f,   0.0f, 1.0f,  // Top-left
-    -0.8f,  0.8f,  0.8f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f,  // Top-right
-    -0.8f,  0.8f, -0.8f,   0.0f, 0.0f, 1.0f,   0.0f, 1.0f,  // Top-left
+    -0.8f, -0.7f, -0.7f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,  // Bottom-left
+    -0.8f, -0.7f,  0.7f,   0.0f, 0.0f, 1.0f,   1.0f, 0.0f,  // Bottom-right
+    -0.8f,  0.7f, -0.7f,   0.0f, 0.0f, 1.0f,   0.0f, 1.0f,  // Top-left
+    -0.8f,  0.7f,  0.7f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f,  // Top-right
+    -0.8f,  0.7f, -0.7f,   0.0f, 0.0f, 1.0f,   0.0f, 1.0f,  // Top-left
     -0.7f, -0.7f,  0.7f,   0.0f, 0.0f, 1.0f,   1.0f, 0.0f,  // Bottom-right
 
     // Right face
@@ -712,6 +712,12 @@ void RenderWindow::initResources()
 
     // Create a default texture (white 2x2 texture) if no texture is loaded
     // createDefaultTexture(logicalDevice);
+    
+    // Load the crate cube model
+    loadCrateCubeModel();
+    
+    // Load NPC 3D model for later use
+    loadNPCModel();
 
     // Create lighting uniform buffer
     const VkDeviceSize lightingBufferSize = sizeof(LightingInfo);
@@ -1939,13 +1945,23 @@ void RenderWindow::drawOutdoorScene(VkDevice device, VkCommandBuffer cb, quint8*
             mDeviceFunctions->vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1,
                                                    &mNPCDescriptorSet1[mWindow->currentFrame()], 0, nullptr);
             
-            // Bind the NPC1 vertex buffer (red)
-            VkDeviceSize npcVertexOffset = 0;
-            mDeviceFunctions->vkCmdBindVertexBuffers(cb, 0, 1, &mNPCBuffer1, &npcVertexOffset);
-            mDeviceFunctions->vkCmdDraw(cb, 36, 1, 0, 0);  // 36 vertices for cube
+            // Check if we should use the model or the basic cube
+            if (mUseNPCModel) {
+                // Use the loaded OBJ model with vertex and index buffers
+                VkDeviceSize npcVertexOffset = 0;
+                mDeviceFunctions->vkCmdBindVertexBuffers(cb, 0, 1, &mNPCModelBuffer, &npcVertexOffset);
+                mDeviceFunctions->vkCmdBindIndexBuffer(cb, mNPCModelIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+                mDeviceFunctions->vkCmdDrawIndexed(cb, mNPCModelIndexCount, 1, 0, 0, 0);
+                qDebug() << "Drew NPC 0 with 3D model at position" << mNPCs[0].position;
+            } else {
+                // Use the basic cube geometry
+                VkDeviceSize npcVertexOffset = 0;
+                mDeviceFunctions->vkCmdBindVertexBuffers(cb, 0, 1, &mNPCBuffer1, &npcVertexOffset);
+                mDeviceFunctions->vkCmdDraw(cb, 36, 1, 0, 0);  // 36 vertices for cube
+                qDebug() << "Drew NPC 0 at position" << mNPCs[0].position << "with basic cube";
+            }
             
             renderedNPCs++;
-            qDebug() << "Drew NPC 0 at position" << mNPCs[0].position << "with unique color";
         }
     }
     
@@ -1976,13 +1992,23 @@ void RenderWindow::drawOutdoorScene(VkDevice device, VkCommandBuffer cb, quint8*
             mDeviceFunctions->vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1,
                                                    &mNPCDescriptorSet2[mWindow->currentFrame()], 0, nullptr);
             
-            // Bind the NPC2 vertex buffer (green)
-            VkDeviceSize npcVertexOffset = 0;
-            mDeviceFunctions->vkCmdBindVertexBuffers(cb, 0, 1, &mNPCBuffer2, &npcVertexOffset);
-            mDeviceFunctions->vkCmdDraw(cb, 36, 1, 0, 0);  // 36 vertices for cube
+            // Check if we should use the model or the basic cube
+            if (mUseNPCModel) {
+                // Use the loaded OBJ model with vertex and index buffers
+                VkDeviceSize npcVertexOffset = 0;
+                mDeviceFunctions->vkCmdBindVertexBuffers(cb, 0, 1, &mNPCModelBuffer, &npcVertexOffset);
+                mDeviceFunctions->vkCmdBindIndexBuffer(cb, mNPCModelIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+                mDeviceFunctions->vkCmdDrawIndexed(cb, mNPCModelIndexCount, 1, 0, 0, 0);
+                qDebug() << "Drew NPC 1 with 3D model at position" << mNPCs[1].position;
+            } else {
+                // Use the basic cube geometry
+                VkDeviceSize npcVertexOffset = 0;
+                mDeviceFunctions->vkCmdBindVertexBuffers(cb, 0, 1, &mNPCBuffer2, &npcVertexOffset);
+                mDeviceFunctions->vkCmdDraw(cb, 36, 1, 0, 0);  // 36 vertices for cube
+                qDebug() << "Drew NPC 1 at position" << mNPCs[1].position << "with basic cube";
+            }
             
             renderedNPCs++;
-            qDebug() << "Drew NPC 1 at position" << mNPCs[1].position << "with unique color";
         }
     }
     
@@ -2013,17 +2039,27 @@ void RenderWindow::drawOutdoorScene(VkDevice device, VkCommandBuffer cb, quint8*
             mDeviceFunctions->vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1,
                                                    &mNPCDescriptorSet3[mWindow->currentFrame()], 0, nullptr);
             
-            // Bind the NPC3 vertex buffer (blue)
-            VkDeviceSize npcVertexOffset = 0;
-            mDeviceFunctions->vkCmdBindVertexBuffers(cb, 0, 1, &mNPCBuffer3, &npcVertexOffset);
-            mDeviceFunctions->vkCmdDraw(cb, 36, 1, 0, 0);  // 36 vertices for cube
+            // Check if we should use the model or the basic cube
+            if (mUseNPCModel) {
+                // Use the loaded OBJ model with vertex and index buffers
+                VkDeviceSize npcVertexOffset = 0;
+                mDeviceFunctions->vkCmdBindVertexBuffers(cb, 0, 1, &mNPCModelBuffer, &npcVertexOffset);
+                mDeviceFunctions->vkCmdBindIndexBuffer(cb, mNPCModelIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+                mDeviceFunctions->vkCmdDrawIndexed(cb, mNPCModelIndexCount, 1, 0, 0, 0);
+                qDebug() << "Drew NPC 2 with 3D model at position" << mNPCs[2].position;
+            } else {
+                // Use the basic cube geometry
+                VkDeviceSize npcVertexOffset = 0;
+                mDeviceFunctions->vkCmdBindVertexBuffers(cb, 0, 1, &mNPCBuffer3, &npcVertexOffset);
+                mDeviceFunctions->vkCmdDraw(cb, 36, 1, 0, 0);  // 36 vertices for cube
+                qDebug() << "Drew NPC 2 at position" << mNPCs[2].position << "with basic cube";
+            }
             
             renderedNPCs++;
-            qDebug() << "Drew NPC 2 at position" << mNPCs[2].position << "with unique color";
         }
     }
     
-    qDebug() << "Drew" << renderedNPCs << "NPCs with different colors";
+    qDebug() << "Drew" << renderedNPCs << "NPCs with " << (mUseNPCModel ? "custom 3D model" : "basic cubes");
 
     // Draw game over overlay if player has lost
     if (mGameLost) {
@@ -3900,6 +3936,428 @@ void RenderWindow::updateLightingData()
              << "Light position:" 
              << mLightingData.lightPosition[0] << mLightingData.lightPosition[1] << mLightingData.lightPosition[2];
 }
+
+void RenderWindow::loadNPCModel() {
+    VkDevice device = mWindow->device();
+    
+    qDebug() << "Loading 3D model for NPCs: CrateCube.obj";
+    
+    std::vector<ObjLoader::Vertex> vertices;
+    std::vector<uint32_t> indices;
+    
+    // Load the model from the models directory
+    QString modelPath = ":/assets/models/CrateCube.obj";
+    
+    if (!ObjLoader::loadObjFile(modelPath, vertices, indices)) {
+        qWarning() << "Failed to load NPC model from" << modelPath << ", using fallback geometry";
+        return; // Use existing NPC geometry as fallback
+    }
+    
+    // Save index count for draw call
+    mNPCModelIndexCount = static_cast<uint32_t>(indices.size());
+    
+    VkDeviceSize vertexBufferSize = sizeof(ObjLoader::Vertex) * vertices.size();
+    VkDeviceSize indexBufferSize = sizeof(uint32_t) * indices.size();
+    
+    // Create staging buffer for vertices
+    VkBuffer stagingVertexBuffer;
+    VkDeviceMemory stagingVertexBufferMemory;
+    createBuffer(
+        vertexBufferSize,
+        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+        stagingVertexBuffer,
+        stagingVertexBufferMemory
+    );
+    
+    // Map and copy vertex data
+    void* vertexData;
+    mDeviceFunctions->vkMapMemory(device, stagingVertexBufferMemory, 0, vertexBufferSize, 0, &vertexData);
+    memcpy(vertexData, vertices.data(), static_cast<size_t>(vertexBufferSize));
+    mDeviceFunctions->vkUnmapMemory(device, stagingVertexBufferMemory);
+    
+    // Create staging buffer for indices
+    VkBuffer stagingIndexBuffer;
+    VkDeviceMemory stagingIndexBufferMemory;
+    createBuffer(
+        indexBufferSize,
+        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+        stagingIndexBuffer,
+        stagingIndexBufferMemory
+    );
+    
+    // Map and copy index data
+    void* indexData;
+    mDeviceFunctions->vkMapMemory(device, stagingIndexBufferMemory, 0, indexBufferSize, 0, &indexData);
+    memcpy(indexData, indices.data(), static_cast<size_t>(indexBufferSize));
+    mDeviceFunctions->vkUnmapMemory(device, stagingIndexBufferMemory);
+    
+    // Create device local vertex buffer
+    createBuffer(
+        vertexBufferSize,
+        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+        mNPCModelBuffer,
+        mNPCModelBufferMemory
+    );
+    
+    // Create device local index buffer
+    createBuffer(
+        indexBufferSize,
+        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+        mNPCModelIndexBuffer,
+        mNPCModelIndexBufferMemory
+    );
+    
+    // Copy buffers
+    copyBuffer(stagingVertexBuffer, mNPCModelBuffer, vertexBufferSize);
+    copyBuffer(stagingIndexBuffer, mNPCModelIndexBuffer, indexBufferSize);
+    
+    // Clean up staging resources
+    mDeviceFunctions->vkDestroyBuffer(device, stagingVertexBuffer, nullptr);
+    mDeviceFunctions->vkFreeMemory(device, stagingVertexBufferMemory, nullptr);
+    mDeviceFunctions->vkDestroyBuffer(device, stagingIndexBuffer, nullptr);
+    mDeviceFunctions->vkFreeMemory(device, stagingIndexBufferMemory, nullptr);
+    
+    // Set the flag to use the model
+    mUseNPCModel = true;
+    
+    qDebug() << "Successfully loaded NPC model with" << vertices.size() << "vertices and" 
+             << mNPCModelIndexCount << "indices";
+}
+
+void RenderWindow::loadCrateCubeModel() {
+    VkDevice device = mWindow->device();
+    
+    qDebug() << "Loading 3D model for Crate: assets/models/CrateCube.obj";
+    
+    // Load the model using new ObjLoader class
+    QString modelPath = "assets/models/CrateCube.obj";
+    ObjModel model = ObjLoader::loadObj(modelPath);
+    
+    // Get memory properties once and reuse
+    VkPhysicalDeviceMemoryProperties memProperties;
+    mWindow->vulkanInstance()->functions()->vkGetPhysicalDeviceMemoryProperties(mWindow->physicalDevice(), &memProperties);
+    
+    if (model.vertices.isEmpty()) {
+        qWarning() << "Failed to load Crate model from" << modelPath << ", using fallback geometry";
+        return; // Use existing geometry as fallback
+    }
+    
+    // Save index count for draw call
+    mCrateCubeIndexCount = static_cast<uint32_t>(model.indices.size());
+    
+    // Convert ObjVertex to raw vertex data for Vulkan
+    QVector<float> vertexData;
+    for (const auto& vertex : model.vertices) {
+        // Position
+        vertexData.append(vertex.position.x());
+        vertexData.append(vertex.position.y());
+        vertexData.append(vertex.position.z());
+        
+        // Normal (converted to color)
+        QVector3D normal = vertex.normal.normalized();
+        vertexData.append(normal.x() * 0.5f + 0.5f); // Convert from [-1,1] to [0,1]
+        vertexData.append(normal.y() * 0.5f + 0.5f);
+        vertexData.append(normal.z() * 0.5f + 0.5f);
+        
+        // Texture coordinates
+        vertexData.append(vertex.texCoord.x());
+        vertexData.append(vertex.texCoord.y());
+    }
+    
+    VkDeviceSize vertexBufferSize = sizeof(float) * vertexData.size();
+    VkDeviceSize indexBufferSize = sizeof(uint32_t) * model.indices.size();
+    
+    // Create staging buffer for vertices
+    VkBuffer stagingVertexBuffer;
+    VkDeviceMemory stagingVertexBufferMemory;
+    
+    VkBufferCreateInfo stagingBufferInfo = {};
+    stagingBufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    stagingBufferInfo.size = vertexBufferSize;
+    stagingBufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+    stagingBufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    
+    VkResult err = mDeviceFunctions->vkCreateBuffer(device, &stagingBufferInfo, nullptr, &stagingVertexBuffer);
+    if (err != VK_SUCCESS) {
+        qWarning() << "Failed to create staging vertex buffer for Crate model:" << err;
+        return;
+    }
+    
+    VkMemoryRequirements memRequirements;
+    mDeviceFunctions->vkGetBufferMemoryRequirements(device, stagingVertexBuffer, &memRequirements);
+    
+    VkMemoryAllocateInfo allocInfo = {};
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;
+    allocInfo.memoryTypeIndex = getMemoryTypeIndex(
+        memProperties,
+        memRequirements.memoryTypeBits,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+    );
+    
+    err = mDeviceFunctions->vkAllocateMemory(device, &allocInfo, nullptr, &stagingVertexBufferMemory);
+    if (err != VK_SUCCESS) {
+        mDeviceFunctions->vkDestroyBuffer(device, stagingVertexBuffer, nullptr);
+        qWarning() << "Failed to allocate staging vertex buffer memory for Crate model:" << err;
+        return;
+    }
+    
+    err = mDeviceFunctions->vkBindBufferMemory(device, stagingVertexBuffer, stagingVertexBufferMemory, 0);
+    if (err != VK_SUCCESS) {
+        mDeviceFunctions->vkDestroyBuffer(device, stagingVertexBuffer, nullptr);
+        mDeviceFunctions->vkFreeMemory(device, stagingVertexBufferMemory, nullptr);
+        qWarning() << "Failed to bind staging vertex buffer memory for Crate model:" << err;
+        return;
+    }
+    
+    // Map and copy vertex data
+    void* vertexData_ptr;
+    mDeviceFunctions->vkMapMemory(device, stagingVertexBufferMemory, 0, vertexBufferSize, 0, &vertexData_ptr);
+    memcpy(vertexData_ptr, vertexData.constData(), static_cast<size_t>(vertexBufferSize));
+    mDeviceFunctions->vkUnmapMemory(device, stagingVertexBufferMemory);
+    
+    // Create staging buffer for indices
+    VkBuffer stagingIndexBuffer;
+    VkDeviceMemory stagingIndexBufferMemory;
+    
+    stagingBufferInfo.size = indexBufferSize;
+    
+    err = mDeviceFunctions->vkCreateBuffer(device, &stagingBufferInfo, nullptr, &stagingIndexBuffer);
+    if (err != VK_SUCCESS) {
+        mDeviceFunctions->vkDestroyBuffer(device, stagingVertexBuffer, nullptr);
+        mDeviceFunctions->vkFreeMemory(device, stagingVertexBufferMemory, nullptr);
+        qWarning() << "Failed to create staging index buffer for Crate model:" << err;
+        return;
+    }
+    
+    mDeviceFunctions->vkGetBufferMemoryRequirements(device, stagingIndexBuffer, &memRequirements);
+    
+    allocInfo.allocationSize = memRequirements.size;
+    allocInfo.memoryTypeIndex = getMemoryTypeIndex(
+        memProperties,
+        memRequirements.memoryTypeBits,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+    );
+    
+    err = mDeviceFunctions->vkAllocateMemory(device, &allocInfo, nullptr, &stagingIndexBufferMemory);
+    if (err != VK_SUCCESS) {
+        mDeviceFunctions->vkDestroyBuffer(device, stagingVertexBuffer, nullptr);
+        mDeviceFunctions->vkFreeMemory(device, stagingVertexBufferMemory, nullptr);
+        mDeviceFunctions->vkDestroyBuffer(device, stagingIndexBuffer, nullptr);
+        qWarning() << "Failed to allocate staging index buffer memory for Crate model:" << err;
+        return;
+    }
+    
+    err = mDeviceFunctions->vkBindBufferMemory(device, stagingIndexBuffer, stagingIndexBufferMemory, 0);
+    if (err != VK_SUCCESS) {
+        mDeviceFunctions->vkDestroyBuffer(device, stagingVertexBuffer, nullptr);
+        mDeviceFunctions->vkFreeMemory(device, stagingVertexBufferMemory, nullptr);
+        mDeviceFunctions->vkDestroyBuffer(device, stagingIndexBuffer, nullptr);
+        mDeviceFunctions->vkFreeMemory(device, stagingIndexBufferMemory, nullptr);
+        qWarning() << "Failed to bind staging index buffer memory for Crate model:" << err;
+        return;
+    }
+    
+    // Map and copy index data
+    void* indexData;
+    mDeviceFunctions->vkMapMemory(device, stagingIndexBufferMemory, 0, indexBufferSize, 0, &indexData);
+    memcpy(indexData, model.indices.constData(), static_cast<size_t>(indexBufferSize));
+    mDeviceFunctions->vkUnmapMemory(device, stagingIndexBufferMemory);
+    
+    // Create device local vertex buffer
+    VkBufferCreateInfo deviceBufferInfo = {};
+    deviceBufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    deviceBufferInfo.size = vertexBufferSize;
+    deviceBufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+    deviceBufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    
+    err = mDeviceFunctions->vkCreateBuffer(device, &deviceBufferInfo, nullptr, &mCrateCubeBuffer);
+    if (err != VK_SUCCESS) {
+        mDeviceFunctions->vkDestroyBuffer(device, stagingVertexBuffer, nullptr);
+        mDeviceFunctions->vkFreeMemory(device, stagingVertexBufferMemory, nullptr);
+        mDeviceFunctions->vkDestroyBuffer(device, stagingIndexBuffer, nullptr);
+        mDeviceFunctions->vkFreeMemory(device, stagingIndexBufferMemory, nullptr);
+        qWarning() << "Failed to create device vertex buffer for Crate model:" << err;
+        return;
+    }
+    
+    mDeviceFunctions->vkGetBufferMemoryRequirements(device, mCrateCubeBuffer, &memRequirements);
+    
+    allocInfo.allocationSize = memRequirements.size;
+    allocInfo.memoryTypeIndex = getMemoryTypeIndex(
+        memProperties,
+        memRequirements.memoryTypeBits,
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+    );
+    
+    err = mDeviceFunctions->vkAllocateMemory(device, &allocInfo, nullptr, &mCrateCubeBufferMemory);
+    if (err != VK_SUCCESS) {
+        mDeviceFunctions->vkDestroyBuffer(device, stagingVertexBuffer, nullptr);
+        mDeviceFunctions->vkFreeMemory(device, stagingVertexBufferMemory, nullptr);
+        mDeviceFunctions->vkDestroyBuffer(device, stagingIndexBuffer, nullptr);
+        mDeviceFunctions->vkFreeMemory(device, stagingIndexBufferMemory, nullptr);
+        mDeviceFunctions->vkDestroyBuffer(device, mCrateCubeBuffer, nullptr);
+        qWarning() << "Failed to allocate device vertex buffer memory for Crate model:" << err;
+        return;
+    }
+    
+    err = mDeviceFunctions->vkBindBufferMemory(device, mCrateCubeBuffer, mCrateCubeBufferMemory, 0);
+    if (err != VK_SUCCESS) {
+        mDeviceFunctions->vkDestroyBuffer(device, stagingVertexBuffer, nullptr);
+        mDeviceFunctions->vkFreeMemory(device, stagingVertexBufferMemory, nullptr);
+        mDeviceFunctions->vkDestroyBuffer(device, stagingIndexBuffer, nullptr);
+        mDeviceFunctions->vkFreeMemory(device, stagingIndexBufferMemory, nullptr);
+        mDeviceFunctions->vkDestroyBuffer(device, mCrateCubeBuffer, nullptr);
+        mDeviceFunctions->vkFreeMemory(device, mCrateCubeBufferMemory, nullptr);
+        qWarning() << "Failed to bind device vertex buffer memory for Crate model:" << err;
+        return;
+    }
+    
+    // Create device local index buffer
+    deviceBufferInfo.size = indexBufferSize;
+    deviceBufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+    
+    err = mDeviceFunctions->vkCreateBuffer(device, &deviceBufferInfo, nullptr, &mCrateCubeIndexBuffer);
+    if (err != VK_SUCCESS) {
+        mDeviceFunctions->vkDestroyBuffer(device, stagingVertexBuffer, nullptr);
+        mDeviceFunctions->vkFreeMemory(device, stagingVertexBufferMemory, nullptr);
+        mDeviceFunctions->vkDestroyBuffer(device, stagingIndexBuffer, nullptr);
+        mDeviceFunctions->vkFreeMemory(device, stagingIndexBufferMemory, nullptr);
+        mDeviceFunctions->vkDestroyBuffer(device, mCrateCubeBuffer, nullptr);
+        mDeviceFunctions->vkFreeMemory(device, mCrateCubeBufferMemory, nullptr);
+        qWarning() << "Failed to create device index buffer for Crate model:" << err;
+        return;
+    }
+    
+    mDeviceFunctions->vkGetBufferMemoryRequirements(device, mCrateCubeIndexBuffer, &memRequirements);
+    
+    allocInfo.allocationSize = memRequirements.size;
+    allocInfo.memoryTypeIndex = getMemoryTypeIndex(
+        memProperties,
+        memRequirements.memoryTypeBits,
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+    );
+    
+    err = mDeviceFunctions->vkAllocateMemory(device, &allocInfo, nullptr, &mCrateCubeIndexBufferMemory);
+    if (err != VK_SUCCESS) {
+        mDeviceFunctions->vkDestroyBuffer(device, stagingVertexBuffer, nullptr);
+        mDeviceFunctions->vkFreeMemory(device, stagingVertexBufferMemory, nullptr);
+        mDeviceFunctions->vkDestroyBuffer(device, stagingIndexBuffer, nullptr);
+        mDeviceFunctions->vkFreeMemory(device, stagingIndexBufferMemory, nullptr);
+        mDeviceFunctions->vkDestroyBuffer(device, mCrateCubeBuffer, nullptr);
+        mDeviceFunctions->vkFreeMemory(device, mCrateCubeBufferMemory, nullptr);
+        mDeviceFunctions->vkDestroyBuffer(device, mCrateCubeIndexBuffer, nullptr);
+        qWarning() << "Failed to allocate device index buffer memory for Crate model:" << err;
+        return;
+    }
+    
+    err = mDeviceFunctions->vkBindBufferMemory(device, mCrateCubeIndexBuffer, mCrateCubeIndexBufferMemory, 0);
+    if (err != VK_SUCCESS) {
+        mDeviceFunctions->vkDestroyBuffer(device, stagingVertexBuffer, nullptr);
+        mDeviceFunctions->vkFreeMemory(device, stagingVertexBufferMemory, nullptr);
+        mDeviceFunctions->vkDestroyBuffer(device, stagingIndexBuffer, nullptr);
+        mDeviceFunctions->vkFreeMemory(device, stagingIndexBufferMemory, nullptr);
+        mDeviceFunctions->vkDestroyBuffer(device, mCrateCubeBuffer, nullptr);
+        mDeviceFunctions->vkFreeMemory(device, mCrateCubeBufferMemory, nullptr);
+        mDeviceFunctions->vkDestroyBuffer(device, mCrateCubeIndexBuffer, nullptr);
+        mDeviceFunctions->vkFreeMemory(device, mCrateCubeIndexBufferMemory, nullptr);
+        qWarning() << "Failed to bind device index buffer memory for Crate model:" << err;
+        return;
+    }
+    
+    // Copy buffers using command buffer
+    VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+    
+    VkBufferCopy copyRegion = {};
+    copyRegion.size = vertexBufferSize;
+    mDeviceFunctions->vkCmdCopyBuffer(commandBuffer, stagingVertexBuffer, mCrateCubeBuffer, 1, &copyRegion);
+    
+    copyRegion.size = indexBufferSize;
+    mDeviceFunctions->vkCmdCopyBuffer(commandBuffer, stagingIndexBuffer, mCrateCubeIndexBuffer, 1, &copyRegion);
+    
+    endSingleTimeCommands(commandBuffer);
+    
+    // Clean up staging resources
+    mDeviceFunctions->vkDestroyBuffer(device, stagingVertexBuffer, nullptr);
+    mDeviceFunctions->vkFreeMemory(device, stagingVertexBufferMemory, nullptr);
+    mDeviceFunctions->vkDestroyBuffer(device, stagingIndexBuffer, nullptr);
+    mDeviceFunctions->vkFreeMemory(device, stagingIndexBufferMemory, nullptr);
+    
+    qDebug() << "Successfully loaded Crate model with" << model.vertices.size() << "vertices and" 
+             << mCrateCubeIndexCount << "indices";
+             }
+void RenderWindow::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, 
+                               VkBuffer& buffer, VkDeviceMemory& bufferMemory)
+{
+    VkDevice device = mWindow->device();
+    
+    // Create buffer
+    VkBufferCreateInfo bufferInfo = {};
+    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    bufferInfo.size = size;
+    bufferInfo.usage = usage;
+    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    
+    VkResult err = mDeviceFunctions->vkCreateBuffer(device, &bufferInfo, nullptr, &buffer);
+    if (err != VK_SUCCESS) {
+        qWarning() << "Failed to create buffer:" << err;
+        return;
+    }
+    
+    // Get memory requirements
+    VkMemoryRequirements memRequirements;
+    mDeviceFunctions->vkGetBufferMemoryRequirements(device, buffer, &memRequirements);
+    
+    // Allocate memory
+    VkMemoryAllocateInfo allocInfo = {};
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;
+    
+    // Get memory properties for finding memory type index
+    VkPhysicalDeviceMemoryProperties memProperties;
+    mWindow->vulkanInstance()->functions()->vkGetPhysicalDeviceMemoryProperties(mWindow->physicalDevice(), &memProperties);
+    
+    allocInfo.memoryTypeIndex = getMemoryTypeIndex(
+        memProperties,
+        memRequirements.memoryTypeBits,
+        properties
+    );
+    
+    err = mDeviceFunctions->vkAllocateMemory(device, &allocInfo, nullptr, &bufferMemory);
+    if (err != VK_SUCCESS) {
+        mDeviceFunctions->vkDestroyBuffer(device, buffer, nullptr);
+        qWarning() << "Failed to allocate buffer memory:" << err;
+        return;
+    }
+    
+    // Bind memory to buffer
+    err = mDeviceFunctions->vkBindBufferMemory(device, buffer, bufferMemory, 0);
+    if (err != VK_SUCCESS) {
+        mDeviceFunctions->vkDestroyBuffer(device, buffer, nullptr);
+        mDeviceFunctions->vkFreeMemory(device, bufferMemory, nullptr);
+        qWarning() << "Failed to bind buffer memory:" << err;
+        return;
+    }
+}
+
+void RenderWindow::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
+{
+    // Begin single-time command buffer
+    VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+    
+    // Record copy command
+    VkBufferCopy copyRegion = {};
+    copyRegion.size = size;
+    mDeviceFunctions->vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+    
+    // End command buffer and submit it
+    endSingleTimeCommands(commandBuffer);
+}
+
 
 
 

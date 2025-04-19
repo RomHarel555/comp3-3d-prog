@@ -1,6 +1,7 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<RCC>
+<!DOCTYPE RCC>
+<RCC version="1.0">
     <qresource prefix="/">
+        <file>assets/models/CrateCube.obj</file>
         <file>assets/textures/wood_texture.jpg</file>
     </qresource>
 </RCC> 

@@ -3,6 +3,7 @@
 #include <QVulkanWindow>
 #include <QVector>
 #include "GameManager.h"
+#include "ObjLoader.h"
 
 // Structure to represent collectible objects
 struct Collectible {
@@ -153,10 +154,24 @@ public:
 
     // Lighting methods
     void updateLightingData();
+    
+    // Model loading
+    void loadNPCModel();
+    void loadCrateCubeModel();
 
 private:
     VkShaderModule createShader(const QString &name);
     void updateUniformBuffer(VkDescriptorBufferInfo &bufferInfo, const QMatrix4x4 &matrix);
+    
+    // Buffer management helpers
+    void createBuffer(
+        VkDeviceSize size,
+        VkBufferUsageFlags usage,
+        VkMemoryPropertyFlags properties,
+        VkBuffer& buffer,
+        VkDeviceMemory& bufferMemory
+    );
+    void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
     
     // Scene drawing functions
     void drawOutdoorScene(VkDevice dev, VkCommandBuffer cb, quint8* GPUmemPointer, VkResult& err);
@@ -263,6 +278,14 @@ private:
     // Old buffer for backward compatibility - to be removed later
     VkBuffer mNPCBuffer = VK_NULL_HANDLE;
     VkDeviceMemory mNPCBufferMemory = VK_NULL_HANDLE;
+
+    // Model resources for the NPCs
+    VkBuffer mNPCModelBuffer = VK_NULL_HANDLE;
+    VkDeviceMemory mNPCModelBufferMemory = VK_NULL_HANDLE;
+    VkBuffer mNPCModelIndexBuffer = VK_NULL_HANDLE;
+    VkDeviceMemory mNPCModelIndexBufferMemory = VK_NULL_HANDLE;
+    uint32_t mNPCModelIndexCount = 0;
+    bool mUseNPCModel = false; // Flag to control whether to use model or basic cube
 
     // CrateCube model resources for NPCs
     VkBuffer mCrateCubeBuffer = VK_NULL_HANDLE;
