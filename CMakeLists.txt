@@ -56,6 +56,13 @@ qt_add_resources(QtVulkanApp "QtVulkanApp"
         ${QtVulkanApp_resource_files}
 )
 
+qt_add_resources(QtVulkanApp "assets_resources"
+    PREFIX
+        "/"
+    FILES
+        "assets/textures/wood_texture.jpg"
+)
+
 install(TARGETS QtVulkanApp
     BUNDLE  DESTINATION .
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}

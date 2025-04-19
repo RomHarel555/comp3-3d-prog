@@ -139,6 +139,20 @@ public:
     
     // Texture handling
     void createDefaultTexture(VkDevice device);
+    void createTextureImage();
+    void createTextureImageView();
+    void createTextureSampler();
+    void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
+    void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
+    void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
+                    VkImageUsageFlags usage, VkMemoryPropertyFlags properties, 
+                    VkImage& image, VkDeviceMemory& imageMemory);
+    VkImageView createImageView(VkImage image, VkFormat format);
+    VkCommandBuffer beginSingleTimeCommands();
+    void endSingleTimeCommands(VkCommandBuffer commandBuffer);
+
+    // Lighting methods
+    void updateLightingData();
 
 private:
     VkShaderModule createShader(const QString &name);
@@ -272,24 +286,9 @@ private:
     VkSampler mTextureSampler = VK_NULL_HANDLE;
     VkCommandPool mTempCommandPool = VK_NULL_HANDLE;
     
-    // Texture helper functions
-    void createTextureImage();
-    void createTextureImageView();
-    void createTextureSampler();
-    void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
-    void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
-    
-    // Utility functions
-    VkCommandBuffer beginSingleTimeCommands();
-    void endSingleTimeCommands(VkCommandBuffer commandBuffer);
-    void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, 
-                    VkImageUsageFlags usage, VkMemoryPropertyFlags properties, 
-                    VkImage& image, VkDeviceMemory& imageMemory);
-    VkImageView createImageView(VkImage image, VkFormat format);
-
-    // Lighting uniform buffer
+    // Lighting resources
+    LightingInfo mLightingData;
     VkBuffer mLightingBuffer = VK_NULL_HANDLE;
     VkDeviceMemory mLightingBufferMemory = VK_NULL_HANDLE;
     VkDescriptorBufferInfo mLightingBufferInfo[QVulkanWindow::MAX_CONCURRENT_FRAME_COUNT];
-    LightingInfo mLightingData;
 };

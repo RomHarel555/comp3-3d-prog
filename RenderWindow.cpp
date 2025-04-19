@@ -1,6 +1,9 @@
 #include "RenderWindow.h"
 #include <QVulkanFunctions>
 #include <QFile>
+#include <QFileInfo>  // Added for QFileInfo class
+#include <QDir>       // Added for QDir class
+#include <QDebug>
 #include "VulkanWindow.h"
 
 // ENLARGED ground vertex data (10x10 plane instead of 5x5)
@@ -28,7 +31,7 @@ static float playerVertexData[] = {
 
     // Back face
     -0.8f, -0.8f, -0.8f,   0.0f, 0.0f, 1.0f,   1.0f, 0.0f,  // Bottom-right
-     0.8f, -0.8f, -0.7f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,  // Bottom-left
+     0.7f, -0.7f, -0.7f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,  // Bottom-left
     -0.7f,  0.7f, -0.7f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f,  // Top-right
      0.7f,  0.7f, -0.7f,   0.0f, 0.0f, 1.0f,   0.0f, 1.0f,  // Top-left
     -0.7f,  0.7f, -0.7f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f,  // Top-right
@@ -67,39 +70,37 @@ static float playerVertexData[] = {
      0.7f, -0.7f, -0.7f,   0.0f, 0.0f, 1.0f,   1.0f, 0.0f   // Bottom-right
 };
 
-// FIXED Collectible vertex data (VERY bright yellow color)
+// FIXED Collectible vertex data - bright yellow cube with texture coordinates
 static float collectibleVertexData[] = {
-    // Position            // Color              // Texture coords
-    // Front face (pure bright yellow)
+    // Front face
     -0.6f, -0.6f,  0.6f,   1.0f, 1.0f, 0.0f,   0.0f, 0.0f,  // Bottom-left
-     0.6f, -0.6f,  0.6f,   1.0f, 1.0f, 0.0f,   1.0f, 0.0f,  // Bottom-right
     -0.6f,  0.6f,  0.6f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f,  // Top-left
+     0.6f, -0.6f,  0.6f,   1.0f, 1.0f, 0.0f,   1.0f, 0.0f,  // Bottom-right
      0.6f,  0.6f,  0.6f,   1.0f, 1.0f, 0.0f,   1.0f, 1.0f,  // Top-right
-    -0.6f,  0.6f,  0.6f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f,  // Top-left
      0.6f, -0.6f,  0.6f,   1.0f, 1.0f, 0.0f,   1.0f, 0.0f,  // Bottom-right
+    -0.6f,  0.6f,  0.6f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f,  // Top-left
 
     // Back face
     -0.6f, -0.6f, -0.6f,   1.0f, 1.0f, 0.0f,   1.0f, 0.0f,  // Bottom-right
-     0.6f, -0.6f, -0.6f,   1.0f, 1.0f, 0.0f,   0.0f, 0.0f,  // Bottom-left
     -0.6f,  0.6f, -0.6f,   1.0f, 1.0f, 0.0f,   1.0f, 1.0f,  // Top-right
+     0.6f, -0.6f, -0.6f,   1.0f, 1.0f, 0.0f,   0.0f, 0.0f,  // Bottom-left
      0.6f,  0.6f, -0.6f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f,  // Top-left
-    -0.6f,  0.6f, -0.6f,   1.0f, 1.0f, 0.0f,   1.0f, 1.0f,  // Top-right
      0.6f, -0.6f, -0.6f,   1.0f, 1.0f, 0.0f,   0.0f, 0.0f,  // Bottom-left
+    -0.6f,  0.6f, -0.6f,   1.0f, 1.0f, 0.0f,   1.0f, 1.0f,  // Top-right
 
     // Left face
     -0.6f, -0.6f, -0.6f,   1.0f, 1.0f, 0.0f,   0.0f, 0.0f,  // Bottom-left
-    -0.6f, -0.6f,  0.6f,   1.0f, 1.0f, 0.0f,   1.0f, 0.0f,  // Bottom-right
     -0.6f,  0.6f, -0.6f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f,  // Top-left
+    -0.6f, -0.6f,  0.6f,   1.0f, 1.0f, 0.0f,   1.0f, 0.0f,  // Bottom-right
     -0.6f,  0.6f,  0.6f,   1.0f, 1.0f, 0.0f,   1.0f, 1.0f,  // Top-right
-    -0.6f,  0.6f, -0.6f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f,  // Top-left
     -0.6f, -0.6f,  0.6f,   1.0f, 1.0f, 0.0f,   1.0f, 0.0f,  // Bottom-right
+    -0.6f,  0.6f, -0.6f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f,  // Top-left
 
     // Right face
      0.6f, -0.6f, -0.6f,   1.0f, 1.0f, 0.0f,   1.0f, 0.0f,  // Bottom-right
+     0.6f,  0.6f, -0.6f,   1.0f, 1.0f, 0.0f,   1.0f, 1.0f,  // Top-right
      0.6f, -0.6f,  0.6f,   1.0f, 1.0f, 0.0f,   0.0f, 0.0f,  // Bottom-left
-     0.6f,  0.6f, -0.6f,   1.0f, 1.0f, 0.0f,   1.0f, 1.0f,  // Top-right
      0.6f,  0.6f,  0.6f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f,  // Top-left
-     0.6f,  0.6f, -0.6f,   1.0f, 1.0f, 0.0f,   1.0f, 1.0f,  // Top-right
      0.6f, -0.6f,  0.6f,   1.0f, 1.0f, 0.0f,   0.0f, 0.0f,  // Bottom-left
 
     // Top face
@@ -276,101 +277,101 @@ static float npcVertexData3[] = {
      0.7f, -0.7f, -0.7f,   0.0f, 0.5f, 1.0f,   1.0f, 0.0f   // Bottom-right
 };
 
-//House vertex data - brown walls
+//House vertex data - brown walls with texture coordinates
 static float houseWallsVertexData[] = {
     // Front wall (with door hole)
     // Left part of front wall
-    -3.0f,  0.0f,  3.0f,   0.6f, 0.4f, 0.2f,  // Bottom-left
-    -3.0f,  2.0f,  3.0f,   0.6f, 0.4f, 0.2f,  // Top-left
-    -1.0f,  0.0f,  3.0f,   0.6f, 0.4f, 0.2f,  // Bottom-right
-    -1.0f,  2.0f,  3.0f,   0.6f, 0.4f, 0.2f,  // Top-right
-    -1.0f,  0.0f,  3.0f,   0.6f, 0.4f, 0.2f,  // Bottom-right
-    -3.0f,  2.0f,  3.0f,   0.6f, 0.4f, 0.2f,  // Top-left
+    -3.0f,  0.0f,  3.0f,   0.6f, 0.4f, 0.2f,   0.0f, 0.0f,  // Bottom-left
+    -3.0f,  2.0f,  3.0f,   0.6f, 0.4f, 0.2f,   0.0f, 1.0f,  // Top-left
+    -1.0f,  0.0f,  3.0f,   0.6f, 0.4f, 0.2f,   0.5f, 0.0f,  // Bottom-right
+    -1.0f,  2.0f,  3.0f,   0.6f, 0.4f, 0.2f,   0.5f, 1.0f,  // Top-right
+    -1.0f,  0.0f,  3.0f,   0.6f, 0.4f, 0.2f,   0.5f, 0.0f,  // Bottom-right
+    -3.0f,  2.0f,  3.0f,   0.6f, 0.4f, 0.2f,   0.0f, 1.0f,  // Top-left
 
     // Right part of front wall
-    1.0f,   0.0f,  3.0f,   0.6f, 0.4f, 0.2f,  // Bottom-left
-    1.0f,   2.0f,  3.0f,   0.6f, 0.4f, 0.2f,  // Top-left
-    3.0f,   0.0f,  3.0f,   0.6f, 0.4f, 0.2f,  // Bottom-right
-    3.0f,   2.0f,  3.0f,   0.6f, 0.4f, 0.2f,  // Top-right
-    3.0f,   0.0f,  3.0f,   0.6f, 0.4f, 0.2f,  // Bottom-right
-    1.0f,   2.0f,  3.0f,   0.6f, 0.4f, 0.2f,  // Top-left
+    1.0f,   0.0f,  3.0f,   0.6f, 0.4f, 0.2f,   0.5f, 0.0f,  // Bottom-left
+    1.0f,   2.0f,  3.0f,   0.6f, 0.4f, 0.2f,   0.5f, 1.0f,  // Top-left
+    3.0f,   0.0f,  3.0f,   0.6f, 0.4f, 0.2f,   1.0f, 0.0f,  // Bottom-right
+    3.0f,   2.0f,  3.0f,   0.6f, 0.4f, 0.2f,   1.0f, 1.0f,  // Top-right
+    3.0f,   0.0f,  3.0f,   0.6f, 0.4f, 0.2f,   1.0f, 0.0f,  // Bottom-right
+    1.0f,   2.0f,  3.0f,   0.6f, 0.4f, 0.2f,   0.5f, 1.0f,  // Top-left
 
     // Top part of front wall
-    -1.0f,  2.0f,  3.0f,   0.6f, 0.4f, 0.2f,  // Bottom-left
-    -1.0f,  3.0f,  3.0f,   0.6f, 0.4f, 0.2f,  // Top-left
-    1.0f,   2.0f,  3.0f,   0.6f, 0.4f, 0.2f,  // Bottom-right
-    1.0f,   3.0f,  3.0f,   0.6f, 0.4f, 0.2f,  // Top-right
-    1.0f,   2.0f,  3.0f,   0.6f, 0.4f, 0.2f,  // Bottom-right
-    -1.0f,  3.0f,  3.0f,   0.6f, 0.4f, 0.2f,  // Top-left
+    -1.0f,  2.0f,  3.0f,   0.6f, 0.4f, 0.2f,   0.0f, 0.0f,  // Bottom-left
+    -1.0f,  3.0f,  3.0f,   0.6f, 0.4f, 0.2f,   0.0f, 0.5f,  // Top-left
+    1.0f,   2.0f,  3.0f,   0.6f, 0.4f, 0.2f,   0.5f, 0.0f,  // Bottom-right
+    1.0f,   3.0f,  3.0f,   0.6f, 0.4f, 0.2f,   0.5f, 0.5f,  // Top-right
+    1.0f,   2.0f,  3.0f,   0.6f, 0.4f, 0.2f,   0.5f, 0.0f,  // Bottom-right
+    -1.0f,  3.0f,  3.0f,   0.6f, 0.4f, 0.2f,   0.0f, 0.5f,  // Top-left
 
     // Back wall
-    -3.0f,  0.0f, -3.0f,   0.6f, 0.4f, 0.2f,  // Bottom-left
-    -3.0f,  3.0f, -3.0f,   0.6f, 0.4f, 0.2f,  // Top-left
-    3.0f,   0.0f, -3.0f,   0.6f, 0.4f, 0.2f,  // Bottom-right
-    3.0f,   3.0f, -3.0f,   0.6f, 0.4f, 0.2f,  // Top-right
-    3.0f,   0.0f, -3.0f,   0.6f, 0.4f, 0.2f,  // Bottom-right
-    -3.0f,  3.0f, -3.0f,   0.6f, 0.4f, 0.2f,  // Top-left
+    -3.0f,  0.0f, -3.0f,   0.6f, 0.4f, 0.2f,   0.0f, 0.0f,  // Bottom-left
+    -3.0f,  3.0f, -3.0f,   0.6f, 0.4f, 0.2f,   0.0f, 1.0f,  // Top-left
+    3.0f,   0.0f, -3.0f,   0.6f, 0.4f, 0.2f,   1.0f, 0.0f,  // Bottom-right
+    3.0f,   3.0f, -3.0f,   0.6f, 0.4f, 0.2f,   1.0f, 1.0f,  // Top-right
+    3.0f,   0.0f, -3.0f,   0.6f, 0.4f, 0.2f,   1.0f, 0.0f,  // Bottom-right
+    -3.0f,  3.0f, -3.0f,   0.6f, 0.4f, 0.2f,   0.0f, 1.0f,  // Top-left
 
     // Left wall
-    -3.0f,  0.0f, -3.0f,   0.6f, 0.4f, 0.2f,  // Bottom-back
-    -3.0f,  3.0f, -3.0f,   0.6f, 0.4f, 0.2f,  // Top-back
-    -3.0f,  0.0f,  3.0f,   0.6f, 0.4f, 0.2f,  // Bottom-front
-    -3.0f,  3.0f,  3.0f,   0.6f, 0.4f, 0.2f,  // Top-front
-    -3.0f,  0.0f,  3.0f,   0.6f, 0.4f, 0.2f,  // Bottom-front
-    -3.0f,  3.0f, -3.0f,   0.6f, 0.4f, 0.2f,  // Top-back
+    -3.0f,  0.0f, -3.0f,   0.6f, 0.4f, 0.2f,   0.0f, 0.0f,  // Bottom-back
+    -3.0f,  3.0f, -3.0f,   0.6f, 0.4f, 0.2f,   0.0f, 1.0f,  // Top-back
+    -3.0f,  0.0f,  3.0f,   0.6f, 0.4f, 0.2f,   1.0f, 0.0f,  // Bottom-front
+    -3.0f,  3.0f,  3.0f,   0.6f, 0.4f, 0.2f,   1.0f, 1.0f,  // Top-front
+    -3.0f,  0.0f,  3.0f,   0.6f, 0.4f, 0.2f,   1.0f, 0.0f,  // Bottom-front
+    -3.0f,  3.0f, -3.0f,   0.6f, 0.4f, 0.2f,   0.0f, 1.0f,  // Top-back
 
     // Right wall
-    3.0f,   0.0f, -3.0f,   0.6f, 0.4f, 0.2f,  // Bottom-back
-    3.0f,   3.0f, -3.0f,   0.6f, 0.4f, 0.2f,  // Top-back
-    3.0f,   0.0f,  3.0f,   0.6f, 0.4f, 0.2f,  // Bottom-front
-    3.0f,   3.0f,  3.0f,   0.6f, 0.4f, 0.2f,  // Top-front
-    3.0f,   0.0f,  3.0f,   0.6f, 0.4f, 0.2f,  // Bottom-front
-    3.0f,   3.0f, -3.0f,   0.6f, 0.4f, 0.2f   // Top-back
+    3.0f,   0.0f, -3.0f,   0.6f, 0.4f, 0.2f,   0.0f, 0.0f,  // Bottom-back
+    3.0f,   3.0f, -3.0f,   0.6f, 0.4f, 0.2f,   0.0f, 1.0f,  // Top-back
+    3.0f,   0.0f,  3.0f,   0.6f, 0.4f, 0.2f,   1.0f, 0.0f,  // Bottom-front
+    3.0f,   3.0f,  3.0f,   0.6f, 0.4f, 0.2f,   1.0f, 1.0f,  // Top-front
+    3.0f,   0.0f,  3.0f,   0.6f, 0.4f, 0.2f,   1.0f, 0.0f,  // Bottom-front
+    3.0f,   3.0f, -3.0f,   0.6f, 0.4f, 0.2f,   0.0f, 1.0f   // Top-back
 };
 
-// House door vertex data - dark brown (closed position)
+// House door vertex data - dark brown (closed position) with texture coordinates
 static float houseDoorVertexData[] = {
     // Door (slightly inset)
-    -1.0f,  0.0f,  2.9f,   0.4f, 0.2f, 0.1f,  // Bottom-left
-    -1.0f,  2.0f,  2.9f,   0.4f, 0.2f, 0.1f,  // Top-left
-    1.0f,   0.0f,  2.9f,   0.4f, 0.2f, 0.1f,  // Bottom-right
-    1.0f,   2.0f,  2.9f,   0.4f, 0.2f, 0.1f,  // Top-right
-    1.0f,   0.0f,  2.9f,   0.4f, 0.2f, 0.1f,  // Bottom-right
-    -1.0f,  2.0f,  2.9f,   0.4f, 0.2f, 0.1f   // Top-left
+    -1.0f,  0.0f,  2.9f,   0.4f, 0.2f, 0.1f,   0.0f, 0.0f,  // Bottom-left
+    -1.0f,  2.0f,  2.9f,   0.4f, 0.2f, 0.1f,   0.0f, 1.0f,  // Top-left
+    1.0f,   0.0f,  2.9f,   0.4f, 0.2f, 0.1f,   1.0f, 0.0f,  // Bottom-right
+    1.0f,   2.0f,  2.9f,   0.4f, 0.2f, 0.1f,   1.0f, 1.0f,  // Top-right
+    1.0f,   0.0f,  2.9f,   0.4f, 0.2f, 0.1f,   1.0f, 0.0f,  // Bottom-right
+    -1.0f,  2.0f,  2.9f,   0.4f, 0.2f, 0.1f,   0.0f, 1.0f   // Top-left
 };
 
-// House door vertex data - dark brown (open position - rotated 90 degrees)
+// House door vertex data - dark brown (open position - rotated 90 degrees) with texture coordinates
 static float houseDoorOpenVertexData[] = {
     // Door (rotated to open position) - with a different color to make it obvious when open
-    -1.0f,  0.0f,  2.9f,   0.9f, 0.5f, 0.2f,  // Bottom-left (hinge point) - brighter color
-    -1.0f,  2.0f,  2.9f,   0.9f, 0.5f, 0.2f,  // Top-left (hinge point) - brighter color
-    -1.0f,  0.0f,  0.9f,   0.9f, 0.5f, 0.2f,  // Bottom-right (new position) - brighter color
-    -1.0f,  2.0f,  0.9f,   0.9f, 0.5f, 0.2f,  // Top-right (new position) - brighter color
-    -1.0f,  0.0f,  0.9f,   0.9f, 0.5f, 0.2f,  // Bottom-right (new position) - brighter color
-    -1.0f,  2.0f,  2.9f,   0.9f, 0.5f, 0.2f   // Top-left (hinge point) - brighter color
+    -1.0f,  0.0f,  2.9f,   0.9f, 0.5f, 0.2f,   0.0f, 0.0f,  // Bottom-left (hinge point) - brighter color
+    -1.0f,  2.0f,  2.9f,   0.9f, 0.5f, 0.2f,   0.0f, 1.0f,  // Top-left (hinge point) - brighter color
+    -1.0f,  0.0f,  0.9f,   0.9f, 0.5f, 0.2f,   1.0f, 0.0f,  // Bottom-right (new position) - brighter color
+    -1.0f,  2.0f,  0.9f,   0.9f, 0.5f, 0.2f,   1.0f, 1.0f,  // Top-right (new position) - brighter color
+    -1.0f,  0.0f,  0.9f,   0.9f, 0.5f, 0.2f,   1.0f, 0.0f,  // Bottom-right (new position) - brighter color
+    -1.0f,  2.0f,  2.9f,   0.9f, 0.5f, 0.2f,   0.0f, 1.0f   // Top-left (hinge point) - brighter color
 };
 
-// House roof vertex data - red
+// House roof vertex data - red with texture coordinates
 static float houseRoofVertexData[] = {
     // Front triangle
-    -3.5f,  3.0f,  3.5f,   0.8f, 0.2f, 0.2f,  // Bottom-left
-    3.5f,   3.0f,  3.5f,   0.8f, 0.2f, 0.2f,  // Bottom-right
-    0.0f,   5.0f,  0.0f,   0.8f, 0.2f, 0.2f,  // Top
+    -3.5f,  3.0f,  3.5f,   0.8f, 0.2f, 0.2f,   0.0f, 0.0f,  // Bottom-left
+    3.5f,   3.0f,  3.5f,   0.8f, 0.2f, 0.2f,   1.0f, 0.0f,  // Bottom-right
+    0.0f,   5.0f,  0.0f,   0.8f, 0.2f, 0.2f,   0.5f, 1.0f,  // Top
 
     // Back triangle
-    -3.5f,  3.0f, -3.5f,   0.8f, 0.2f, 0.2f,  // Bottom-left
-    3.5f,   3.0f, -3.5f,   0.8f, 0.2f, 0.2f,  // Bottom-right
-    0.0f,   5.0f,  0.0f,   0.8f, 0.2f, 0.2f,  // Top
+    -3.5f,  3.0f, -3.5f,   0.8f, 0.2f, 0.2f,   0.0f, 0.0f,  // Bottom-left
+    3.5f,   3.0f, -3.5f,   0.8f, 0.2f, 0.2f,   1.0f, 0.0f,  // Bottom-right
+    0.0f,   5.0f,  0.0f,   0.8f, 0.2f, 0.2f,   0.5f, 1.0f,  // Top
 
     // Left triangle
-    -3.5f,  3.0f, -3.5f,   0.8f, 0.2f, 0.2f,  // Bottom-back
-    -3.5f,  3.0f,  3.5f,   0.8f, 0.2f, 0.2f,  // Bottom-front
-    0.0f,   5.0f,  0.0f,   0.8f, 0.2f, 0.2f,  // Top
+    -3.5f,  3.0f, -3.5f,   0.8f, 0.2f, 0.2f,   0.0f, 0.0f,  // Bottom-back
+    -3.5f,  3.0f,  3.5f,   0.8f, 0.2f, 0.2f,   1.0f, 0.0f,  // Bottom-front
+    0.0f,   5.0f,  0.0f,   0.8f, 0.2f, 0.2f,   0.5f, 1.0f,  // Top
 
     // Right triangle
-    3.5f,   3.0f, -3.5f,   0.8f, 0.2f, 0.2f,  // Bottom-back
-    3.5f,   3.0f,  3.5f,   0.8f, 0.2f, 0.2f,  // Bottom-front
-    0.0f,   5.0f,  0.0f,   0.8f, 0.2f, 0.2f   // Top
+    3.5f,   3.0f, -3.5f,   0.8f, 0.2f, 0.2f,   0.0f, 0.0f,  // Bottom-back
+    3.5f,   3.0f,  3.5f,   0.8f, 0.2f, 0.2f,   1.0f, 0.0f,  // Bottom-front
+    0.0f,   5.0f,  0.0f,   0.8f, 0.2f, 0.2f,   0.5f, 1.0f   // Top
 };
 
 // Indoor walls vertex data - light beige
@@ -704,8 +705,13 @@ void RenderWindow::initResources()
     
     mDeviceFunctions->vkUnmapMemory(logicalDevice, mBufferMemory);
 
+    // Load and create texture resources
+    createTextureImage();
+    createTextureImageView();
+    createTextureSampler();
+
     // Create a default texture (white 2x2 texture) if no texture is loaded
-    createDefaultTexture(logicalDevice);
+    // createDefaultTexture(logicalDevice);
 
     // Create lighting uniform buffer
     const VkDeviceSize lightingBufferSize = sizeof(LightingInfo);
@@ -2176,6 +2182,9 @@ void RenderWindow::startNextFrame()
     // Update NPC positions
     updateNPCs();
     
+    // Update lighting based on camera position
+    updateLightingData();
+    
     // Check for NPC collisions - reset player if hit
     if (checkNPCCollision()) {
         // Reset player to starting position (0,0,0)
@@ -2396,6 +2405,29 @@ void RenderWindow::releaseResources()
 
     VkDevice device = mWindow->device();
 
+    // -------------------------------------------------------------------------------------------
+    // 1. Make sure device is idle before releasing resources
+    // -------------------------------------------------------------------------------------------
+    mDeviceFunctions->vkDeviceWaitIdle(device);
+
+    // -------------------------------------------------------------------------------------------
+    // 2. Destroy descriptor set layouts and pools
+    // -------------------------------------------------------------------------------------------
+    if (mDescriptorSetLayout != VK_NULL_HANDLE) {
+        mDeviceFunctions->vkDestroyDescriptorSetLayout(device, mDescriptorSetLayout, nullptr);
+        mDescriptorSetLayout = VK_NULL_HANDLE;
+    }
+
+    if (mDescriptorPool != VK_NULL_HANDLE) {
+        // Note: Destroying the descriptor pool automatically frees all descriptor sets
+        // allocated from it
+        mDeviceFunctions->vkDestroyDescriptorPool(device, mDescriptorPool, nullptr);
+        mDescriptorPool = VK_NULL_HANDLE;
+    }
+
+    // -------------------------------------------------------------------------------------------
+    // 3. Destroy pipeline resources
+    // -------------------------------------------------------------------------------------------
     if (mPipeline) {
         mDeviceFunctions->vkDestroyPipeline(device, mPipeline, nullptr);
         mPipeline = VK_NULL_HANDLE;
@@ -2411,145 +2443,226 @@ void RenderWindow::releaseResources()
         mPipelineCache = VK_NULL_HANDLE;
     }
 
-    if (mDescriptorSetLayout) {
+    // -------------------------------------------------------------------------------------------
+    // 4. Destroy texture resources
+    // -------------------------------------------------------------------------------------------
+    if (mTextureSampler != VK_NULL_HANDLE) {
+        mDeviceFunctions->vkDestroySampler(device, mTextureSampler, nullptr);
+        mTextureSampler = VK_NULL_HANDLE;
+    }
+    
+    if (mTextureImageView != VK_NULL_HANDLE) {
+        mDeviceFunctions->vkDestroyImageView(device, mTextureImageView, nullptr);
+        mTextureImageView = VK_NULL_HANDLE;
+    }
+    
+    if (mTextureImage != VK_NULL_HANDLE) {
+        mDeviceFunctions->vkDestroyImage(device, mTextureImage, nullptr);
+        mTextureImage = VK_NULL_HANDLE;
+    }
+
+    // -------------------------------------------------------------------------------------------
+    // 5. Destroy descriptor set layouts and pools
+    // -------------------------------------------------------------------------------------------
+    if (mDescriptorSetLayout != VK_NULL_HANDLE) {
         mDeviceFunctions->vkDestroyDescriptorSetLayout(device, mDescriptorSetLayout, nullptr);
         mDescriptorSetLayout = VK_NULL_HANDLE;
     }
 
-    if (mDescriptorPool) {
+    if (mDescriptorPool != VK_NULL_HANDLE) {
         // Note: Destroying the descriptor pool automatically frees all descriptor sets
-        // allocated from it (both mDescriptorSet and mPlayerDescriptorSet)
+        // allocated from it
         mDeviceFunctions->vkDestroyDescriptorPool(device, mDescriptorPool, nullptr);
         mDescriptorPool = VK_NULL_HANDLE;
     }
 
-    if (mBuffer) {
+    // -------------------------------------------------------------------------------------------
+    // 6. Destroy all buffers
+    // -------------------------------------------------------------------------------------------
+    // Main uniform buffer
+    if (mBuffer != VK_NULL_HANDLE) {
         mDeviceFunctions->vkDestroyBuffer(device, mBuffer, nullptr);
         mBuffer = VK_NULL_HANDLE;
     }
 
-    if (mBufferMemory) {
-        mDeviceFunctions->vkFreeMemory(device, mBufferMemory, nullptr);
-        mBufferMemory = VK_NULL_HANDLE;
-    }
-
-    if (mGroundBuffer) {
-        mDeviceFunctions->vkDestroyBuffer(mWindow->device(), mGroundBuffer, nullptr);
+    // Ground buffers
+    if (mGroundBuffer != VK_NULL_HANDLE) {
+        mDeviceFunctions->vkDestroyBuffer(device, mGroundBuffer, nullptr);
         mGroundBuffer = VK_NULL_HANDLE;
     }
 
-    if (mGroundBufferMemory) {
-        mDeviceFunctions->vkFreeMemory(mWindow->device(), mGroundBufferMemory, nullptr);
-        mGroundBufferMemory = VK_NULL_HANDLE;
-    }
-
-    if (mPlayerBuffer) {
-        mDeviceFunctions->vkDestroyBuffer(mWindow->device(), mPlayerBuffer, nullptr);
+    // Player buffers
+    if (mPlayerBuffer != VK_NULL_HANDLE) {
+        mDeviceFunctions->vkDestroyBuffer(device, mPlayerBuffer, nullptr);
         mPlayerBuffer = VK_NULL_HANDLE;
     }
 
-    if (mPlayerBufferMemory) {
-        mDeviceFunctions->vkFreeMemory(mWindow->device(), mPlayerBufferMemory, nullptr);
-        mPlayerBufferMemory = VK_NULL_HANDLE;
-    }
-
-    if (mCollectibleBuffer) {
-        mDeviceFunctions->vkDestroyBuffer(mWindow->device(), mCollectibleBuffer, nullptr);
+    // Collectible buffers
+    if (mCollectibleBuffer != VK_NULL_HANDLE) {
+        mDeviceFunctions->vkDestroyBuffer(device, mCollectibleBuffer, nullptr);
         mCollectibleBuffer = VK_NULL_HANDLE;
     }
 
-    if (mCollectibleBufferMemory) {
-        mDeviceFunctions->vkFreeMemory(mWindow->device(), mCollectibleBufferMemory, nullptr);
-        mCollectibleBufferMemory = VK_NULL_HANDLE;
-    }
-
-    if (mNPCBuffer) {
+    // NPC buffers
+    if (mNPCBuffer != VK_NULL_HANDLE) {
         mDeviceFunctions->vkDestroyBuffer(device, mNPCBuffer, nullptr);
         mNPCBuffer = VK_NULL_HANDLE;
     }
-
-    if (mNPCBufferMemory) {
-        mDeviceFunctions->vkFreeMemory(device, mNPCBufferMemory, nullptr);
-        mNPCBufferMemory = VK_NULL_HANDLE;
-    }
     
-    // Free new NPC colored buffers
-    if (mNPCBuffer1) {
+    // NPC colored buffers
+    if (mNPCBuffer1 != VK_NULL_HANDLE) {
         mDeviceFunctions->vkDestroyBuffer(device, mNPCBuffer1, nullptr);
         mNPCBuffer1 = VK_NULL_HANDLE;
     }
-
-    if (mNPCBufferMemory1) {
-        mDeviceFunctions->vkFreeMemory(device, mNPCBufferMemory1, nullptr);
-        mNPCBufferMemory1 = VK_NULL_HANDLE;
-    }
     
-    if (mNPCBuffer2) {
+    if (mNPCBuffer2 != VK_NULL_HANDLE) {
         mDeviceFunctions->vkDestroyBuffer(device, mNPCBuffer2, nullptr);
         mNPCBuffer2 = VK_NULL_HANDLE;
     }
-
-    if (mNPCBufferMemory2) {
-        mDeviceFunctions->vkFreeMemory(device, mNPCBufferMemory2, nullptr);
-        mNPCBufferMemory2 = VK_NULL_HANDLE;
-    }
     
-    if (mNPCBuffer3) {
+    if (mNPCBuffer3 != VK_NULL_HANDLE) {
         mDeviceFunctions->vkDestroyBuffer(device, mNPCBuffer3, nullptr);
         mNPCBuffer3 = VK_NULL_HANDLE;
     }
 
-    if (mNPCBufferMemory3 != VK_NULL_HANDLE) {
-        mDeviceFunctions->vkFreeMemory(mWindow->device(), mNPCBufferMemory3, nullptr);
-        mNPCBufferMemory3 = VK_NULL_HANDLE;
-    }
-
-    // Free house buffers
-    if (mHouseWallsBuffer) {
+    // House buffers
+    if (mHouseWallsBuffer != VK_NULL_HANDLE) {
         mDeviceFunctions->vkDestroyBuffer(device, mHouseWallsBuffer, nullptr);
         mHouseWallsBuffer = VK_NULL_HANDLE;
     }
 
-    if (mHouseWallsBufferMemory) {
-        mDeviceFunctions->vkFreeMemory(device, mHouseWallsBufferMemory, nullptr);
-        mHouseWallsBufferMemory = VK_NULL_HANDLE;
-    }
-
-    if (mHouseDoorBuffer) {
+    if (mHouseDoorBuffer != VK_NULL_HANDLE) {
         mDeviceFunctions->vkDestroyBuffer(device, mHouseDoorBuffer, nullptr);
         mHouseDoorBuffer = VK_NULL_HANDLE;
     }
 
-    if (mHouseDoorBufferMemory) {
-        mDeviceFunctions->vkFreeMemory(device, mHouseDoorBufferMemory, nullptr);
-        mHouseDoorBufferMemory = VK_NULL_HANDLE;
-    }
-
-    if (mHouseRoofBuffer) {
+    if (mHouseRoofBuffer != VK_NULL_HANDLE) {
         mDeviceFunctions->vkDestroyBuffer(device, mHouseRoofBuffer, nullptr);
         mHouseRoofBuffer = VK_NULL_HANDLE;
     }
-
-    if (mHouseRoofBufferMemory) {
-        mDeviceFunctions->vkFreeMemory(device, mHouseRoofBufferMemory, nullptr);
-        mHouseRoofBufferMemory = VK_NULL_HANDLE;
+    
+    // Indoor buffers
+    if (mIndoorWallsBuffer != VK_NULL_HANDLE) {
+        mDeviceFunctions->vkDestroyBuffer(device, mIndoorWallsBuffer, nullptr);
+        mIndoorWallsBuffer = VK_NULL_HANDLE;
+    }
+    
+    if (mExitDoorBuffer != VK_NULL_HANDLE) {
+        mDeviceFunctions->vkDestroyBuffer(device, mExitDoorBuffer, nullptr);
+        mExitDoorBuffer = VK_NULL_HANDLE;
     }
 
-    // Clean up lighting buffer
+    // Crate cube buffers
+    if (mCrateCubeBuffer != VK_NULL_HANDLE) {
+        mDeviceFunctions->vkDestroyBuffer(device, mCrateCubeBuffer, nullptr);
+        mCrateCubeBuffer = VK_NULL_HANDLE;
+    }
+    
+    if (mCrateCubeIndexBuffer != VK_NULL_HANDLE) {
+        mDeviceFunctions->vkDestroyBuffer(device, mCrateCubeIndexBuffer, nullptr);
+        mCrateCubeIndexBuffer = VK_NULL_HANDLE;
+    }
+
+    // Lighting buffer
     if (mLightingBuffer != VK_NULL_HANDLE) {
         mDeviceFunctions->vkDestroyBuffer(device, mLightingBuffer, nullptr);
         mLightingBuffer = VK_NULL_HANDLE;
     }
 
+    // -------------------------------------------------------------------------------------------
+    // 7. Free all memory allocations
+    // -------------------------------------------------------------------------------------------
+    // Main uniform buffer memory
+    if (mBufferMemory != VK_NULL_HANDLE) {
+        mDeviceFunctions->vkFreeMemory(device, mBufferMemory, nullptr);
+        mBufferMemory = VK_NULL_HANDLE;
+    }
+
+    // Ground buffer memory
+    if (mGroundBufferMemory != VK_NULL_HANDLE) {
+        mDeviceFunctions->vkFreeMemory(device, mGroundBufferMemory, nullptr);
+        mGroundBufferMemory = VK_NULL_HANDLE;
+    }
+
+    // Player buffer memory
+    if (mPlayerBufferMemory != VK_NULL_HANDLE) {
+        mDeviceFunctions->vkFreeMemory(device, mPlayerBufferMemory, nullptr);
+        mPlayerBufferMemory = VK_NULL_HANDLE;
+    }
+
+    // Collectible buffer memory
+    if (mCollectibleBufferMemory != VK_NULL_HANDLE) {
+        mDeviceFunctions->vkFreeMemory(device, mCollectibleBufferMemory, nullptr);
+        mCollectibleBufferMemory = VK_NULL_HANDLE;
+    }
+
+    // NPC buffer memory
+    if (mNPCBufferMemory != VK_NULL_HANDLE) {
+        mDeviceFunctions->vkFreeMemory(device, mNPCBufferMemory, nullptr);
+        mNPCBufferMemory = VK_NULL_HANDLE;
+    }
+    
+    // NPC colored buffer memory
+    if (mNPCBufferMemory1 != VK_NULL_HANDLE) {
+        mDeviceFunctions->vkFreeMemory(device, mNPCBufferMemory1, nullptr);
+        mNPCBufferMemory1 = VK_NULL_HANDLE;
+    }
+    
+    if (mNPCBufferMemory2 != VK_NULL_HANDLE) {
+        mDeviceFunctions->vkFreeMemory(device, mNPCBufferMemory2, nullptr);
+        mNPCBufferMemory2 = VK_NULL_HANDLE;
+    }
+    
+    if (mNPCBufferMemory3 != VK_NULL_HANDLE) {
+        mDeviceFunctions->vkFreeMemory(device, mNPCBufferMemory3, nullptr);
+        mNPCBufferMemory3 = VK_NULL_HANDLE;
+    }
+
+    // House buffer memory
+    if (mHouseWallsBufferMemory != VK_NULL_HANDLE) {
+        mDeviceFunctions->vkFreeMemory(device, mHouseWallsBufferMemory, nullptr);
+        mHouseWallsBufferMemory = VK_NULL_HANDLE;
+    }
+
+    if (mHouseDoorBufferMemory != VK_NULL_HANDLE) {
+        mDeviceFunctions->vkFreeMemory(device, mHouseDoorBufferMemory, nullptr);
+        mHouseDoorBufferMemory = VK_NULL_HANDLE;
+    }
+
+    if (mHouseRoofBufferMemory != VK_NULL_HANDLE) {
+        mDeviceFunctions->vkFreeMemory(device, mHouseRoofBufferMemory, nullptr);
+        mHouseRoofBufferMemory = VK_NULL_HANDLE;
+    }
+
+    // Indoor buffer memory
+    if (mIndoorWallsBufferMemory != VK_NULL_HANDLE) {
+        mDeviceFunctions->vkFreeMemory(device, mIndoorWallsBufferMemory, nullptr);
+        mIndoorWallsBufferMemory = VK_NULL_HANDLE;
+    }
+    
+    if (mExitDoorBufferMemory != VK_NULL_HANDLE) {
+        mDeviceFunctions->vkFreeMemory(device, mExitDoorBufferMemory, nullptr);
+        mExitDoorBufferMemory = VK_NULL_HANDLE;
+    }
+
+    // Lighting buffer memory
     if (mLightingBufferMemory != VK_NULL_HANDLE) {
         mDeviceFunctions->vkFreeMemory(device, mLightingBufferMemory, nullptr);
         mLightingBufferMemory = VK_NULL_HANDLE;
     }
-
-    // Free house descriptor sets
-    if (mHouseDescriptorSet[0]) {
-        mDeviceFunctions->vkFreeDescriptorSets(device, mDescriptorPool, 1, mHouseDescriptorSet);
-        mHouseDescriptorSet[0] = VK_NULL_HANDLE;
+    
+    // Texture image memory
+    if (mTextureImageMemory != VK_NULL_HANDLE) {
+        mDeviceFunctions->vkFreeMemory(device, mTextureImageMemory, nullptr);
+        mTextureImageMemory = VK_NULL_HANDLE;
+    }
+    
+    // -------------------------------------------------------------------------------------------
+    // 8. Clean up command pools
+    // -------------------------------------------------------------------------------------------
+    if (mTempCommandPool != VK_NULL_HANDLE) {
+        mDeviceFunctions->vkDestroyCommandPool(device, mTempCommandPool, nullptr);
+        mTempCommandPool = VK_NULL_HANDLE;
     }
 
     qDebug("\n ***************************** releaseResources finished ******************************************* \n");
@@ -2850,21 +2963,21 @@ void RenderWindow::updateDoorState(bool open)
     if (mDoorOpen == open) {
         return; // No change needed
     }
-     
+    
     mDoorOpen = open;
-     
+    
     // Update door buffer with appropriate vertex data
     VkDevice device = mWindow->device();
-     
+    
     // Map the door buffer memory
     void* doorData;
     VkResult err = mDeviceFunctions->vkMapMemory(device, mHouseDoorBufferMemory, 0, 
-                                               sizeof(houseDoorVertexData), 0, &doorData);
+                                                sizeof(houseDoorVertexData), 0, &doorData);
     if (err != VK_SUCCESS) {
         qDebug() << "Failed to map door memory! Error:" << err;
         return;
     }
-     
+    
     // Copy the appropriate vertex data based on door state
     if (mDoorOpen) {
         memcpy(doorData, houseDoorOpenVertexData, sizeof(houseDoorOpenVertexData));
@@ -2873,10 +2986,10 @@ void RenderWindow::updateDoorState(bool open)
         memcpy(doorData, houseDoorVertexData, sizeof(houseDoorVertexData));
         qDebug() << "Door closed - updated vertex data";
     }
-     
+    
     // Unmap the memory
     mDeviceFunctions->vkUnmapMemory(device, mHouseDoorBufferMemory);
-     
+    
     // Request a redraw to show the updated door state
     if (mWindow) {
         mWindow->requestUpdate();
@@ -3210,7 +3323,7 @@ void RenderWindow::createDefaultTexture(VkDevice device)
 VkCommandBuffer RenderWindow::beginSingleTimeCommands() {
     VkDevice device = mWindow->device();
     
-    // Create a temporary command pool if it doesn't exist
+    // Create command pool if it doesn't exist
     if (mTempCommandPool == VK_NULL_HANDLE) {
         VkCommandPoolCreateInfo poolInfo = {};
         poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -3219,7 +3332,7 @@ VkCommandBuffer RenderWindow::beginSingleTimeCommands() {
         
         VkResult err = mDeviceFunctions->vkCreateCommandPool(device, &poolInfo, nullptr, &mTempCommandPool);
         if (err != VK_SUCCESS) {
-            qFatal("Failed to create command pool: %d", err);
+            qFatal("Failed to create temporary command pool: %d", err);
         }
     }
     
@@ -3277,6 +3390,515 @@ void RenderWindow::endSingleTimeCommands(VkCommandBuffer commandBuffer) {
     
     // Free command buffer
     mDeviceFunctions->vkFreeCommandBuffers(device, mTempCommandPool, 1, &commandBuffer);
+}
+
+// Load a texture image from file
+void RenderWindow::createTextureImage()
+{
+    // Resource debugging test
+    qDebug() << "\n========= RESOURCE TEST =========";
+    if (QFile::exists(":/assets/textures/wood_texture.jpg")) {
+        qDebug() << "PASS: Texture resource exists!";
+    } else {
+        qDebug() << "FAIL: Texture resource NOT found in Qt resource system";
+        qDebug() << "Available resources at root:";
+        QDir resourceDir(":/");
+        QStringList entries = resourceDir.entryList(QDir::AllEntries);
+        for (const QString& entry : entries) {
+            qDebug() << " - " << entry;
+        }
+        
+        // Try to check if assets directory exists
+        if (QDir(":/assets").exists()) {
+            qDebug() << "Assets directory exists, contents:";
+            QStringList assetEntries = QDir(":/assets").entryList(QDir::AllEntries);
+            for (const QString& entry : assetEntries) {
+                qDebug() << " - " << entry;
+            }
+            
+            // If assets exists, check textures subdirectory
+            if (QDir(":/assets/textures").exists()) {
+                qDebug() << "Textures directory exists, contents:";
+                QStringList textureEntries = QDir(":/assets/textures").entryList(QDir::AllEntries);
+                for (const QString& entry : textureEntries) {
+                    qDebug() << " - " << entry;
+                }
+            } else {
+                qDebug() << "Textures directory does not exist in resource system";
+            }
+        } else {
+            qDebug() << "Assets directory does not exist in resource system";
+        }
+    }
+    qDebug() << "================================\n";
+
+    VkDevice device = mWindow->device();
+    
+    // Define the file path for wood texture
+    QString texturePath = ":/assets/textures/wood_texture.jpg";
+    
+    // Check if the file exists first
+    QFileInfo fileInfo(texturePath);
+    if (!fileInfo.exists()) {
+        qWarning() << "Texture file does not exist at path:" << texturePath;
+        qWarning() << "Absolute path attempted:" << fileInfo.absoluteFilePath();
+        qWarning() << "Working directory:" << QDir::currentPath();
+        
+        // Try alternative paths
+        QStringList alternativePaths = {
+            "./assets/textures/wood_texture.jpg",
+            "../assets/textures/wood_texture.jpg",
+            ":/assets/textures/wood_texture.jpg",
+            ":/textures/wood_texture.jpg",
+            ":/wood_texture.jpg"
+        };
+        
+        bool found = false;
+        for (const QString& altPath : alternativePaths) {
+            QFileInfo altInfo(altPath);
+            if (altInfo.exists()) {
+                texturePath = altPath;
+                qDebug() << "Found texture at alternative path:" << texturePath;
+                found = true;
+                break;
+            }
+        }
+        
+        if (!found) {
+            qWarning() << "No texture found in alternative paths. Creating default texture.";
+            // Fall back to default texture
+            createDefaultTexture(device);
+            return;
+        }
+    }
+    
+    QImage image(texturePath);
+    
+    if (image.isNull()) {
+        qWarning() << "Failed to load texture:" << texturePath;
+        // Fall back to default texture
+        createDefaultTexture(device);
+        return;
+    }
+    
+    // Convert to RGBA format
+    image = image.convertToFormat(QImage::Format_RGBA8888);
+    
+    const uint32_t texWidth = image.width();
+    const uint32_t texHeight = image.height();
+    const VkDeviceSize imageSize = texWidth * texHeight * 4; // RGBA
+    
+    // Create staging buffer
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
+    
+    VkBufferCreateInfo bufferInfo = {};
+    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    bufferInfo.size = imageSize;
+    bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    
+    VkResult err = mDeviceFunctions->vkCreateBuffer(device, &bufferInfo, nullptr, &stagingBuffer);
+    if (err != VK_SUCCESS) {
+        qFatal("Failed to create staging buffer: %d", err);
+    }
+    
+    VkMemoryRequirements memRequirements;
+    mDeviceFunctions->vkGetBufferMemoryRequirements(device, stagingBuffer, &memRequirements);
+    
+    // Allocate memory for staging buffer with HOST_VISIBLE for CPU access
+    VkMemoryAllocateInfo allocInfo = {};
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;
+    
+    VkPhysicalDeviceMemoryProperties textureMemProperties;
+    mWindow->vulkanInstance()->functions()->vkGetPhysicalDeviceMemoryProperties(mWindow->physicalDevice(), &textureMemProperties);
+    
+    // Use HOST_VISIBLE memory for staging buffer so we can map it
+    allocInfo.memoryTypeIndex = getMemoryTypeIndex(
+        textureMemProperties,
+        memRequirements.memoryTypeBits,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+    );
+    
+    err = mDeviceFunctions->vkAllocateMemory(device, &allocInfo, nullptr, &stagingBufferMemory);
+    if (err != VK_SUCCESS) {
+        qFatal("Failed to allocate staging buffer memory: %d", err);
+    }
+    
+    err = mDeviceFunctions->vkBindBufferMemory(device, stagingBuffer, stagingBufferMemory, 0);
+    if (err != VK_SUCCESS) {
+        qFatal("Failed to bind staging buffer memory: %d", err);
+    }
+    
+    // Copy data to staging buffer using mapped memory
+    void* data;
+    err = mDeviceFunctions->vkMapMemory(device, stagingBufferMemory, 0, imageSize, 0, &data);
+    if (err != VK_SUCCESS) {
+        qFatal("Failed to map memory: %d", err);
+    }
+    
+    // Copy the image data to the staging buffer
+    memcpy(data, image.constBits(), static_cast<size_t>(imageSize));
+    mDeviceFunctions->vkUnmapMemory(device, stagingBufferMemory);
+    
+    // Clean up existing texture if it exists
+    if (mTextureImage != VK_NULL_HANDLE) {
+        mDeviceFunctions->vkDestroyImage(device, mTextureImage, nullptr);
+        mTextureImage = VK_NULL_HANDLE;
+    }
+    
+    if (mTextureImageMemory != VK_NULL_HANDLE) {
+        mDeviceFunctions->vkFreeMemory(device, mTextureImageMemory, nullptr);
+        mTextureImageMemory = VK_NULL_HANDLE;
+    }
+    
+    // Create texture image with optimal tiling for GPU access
+    createImage(
+        texWidth, 
+        texHeight, 
+        VK_FORMAT_R8G8B8A8_UNORM, 
+        VK_IMAGE_TILING_OPTIMAL, 
+        VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, 
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 
+        mTextureImage, 
+        mTextureImageMemory
+    );
+    
+    // Transition image layout for copy operation
+    transitionImageLayout(
+        mTextureImage, 
+        VK_FORMAT_R8G8B8A8_UNORM, 
+        VK_IMAGE_LAYOUT_UNDEFINED, 
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
+    );
+    
+    // Copy data from staging buffer to image
+    copyBufferToImage(stagingBuffer, mTextureImage, texWidth, texHeight);
+    
+    // Transition image layout for shader access
+    transitionImageLayout(
+        mTextureImage, 
+        VK_FORMAT_R8G8B8A8_UNORM, 
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 
+        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+    );
+    
+    // Cleanup staging resources
+    mDeviceFunctions->vkDestroyBuffer(device, stagingBuffer, nullptr);
+    mDeviceFunctions->vkFreeMemory(device, stagingBufferMemory, nullptr);
+    
+    qDebug() << "Texture loaded successfully:" << texturePath;
+}
+
+// Create texture image view
+void RenderWindow::createTextureImageView() 
+{
+    VkDevice device = mWindow->device();
+    
+    // Clean up old view if it exists
+    if (mTextureImageView != VK_NULL_HANDLE) {
+        mDeviceFunctions->vkDestroyImageView(device, mTextureImageView, nullptr);
+        mTextureImageView = VK_NULL_HANDLE;
+    }
+    
+    mTextureImageView = createImageView(mTextureImage, VK_FORMAT_R8G8B8A8_UNORM);
+}
+
+// Create image view helper function
+VkImageView RenderWindow::createImageView(VkImage image, VkFormat format) 
+{
+    VkImageViewCreateInfo viewInfo = {};
+    viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    viewInfo.image = image;
+    viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    viewInfo.format = format;
+    viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    viewInfo.subresourceRange.baseMipLevel = 0;
+    viewInfo.subresourceRange.levelCount = 1;
+    viewInfo.subresourceRange.baseArrayLayer = 0;
+    viewInfo.subresourceRange.layerCount = 1;
+    
+    VkImageView imageView;
+    VkResult err = mDeviceFunctions->vkCreateImageView(mWindow->device(), &viewInfo, nullptr, &imageView);
+    if (err != VK_SUCCESS) {
+        qFatal("Failed to create texture image view: %d", err);
+    }
+    
+    return imageView;
+}
+
+// Create texture sampler
+void RenderWindow::createTextureSampler() 
+{
+    VkDevice device = mWindow->device();
+    
+    // Clean up old sampler if it exists
+    if (mTextureSampler != VK_NULL_HANDLE) {
+        mDeviceFunctions->vkDestroySampler(device, mTextureSampler, nullptr);
+        mTextureSampler = VK_NULL_HANDLE;
+    }
+    
+    VkSamplerCreateInfo samplerInfo = {};
+    samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+    samplerInfo.magFilter = VK_FILTER_LINEAR;
+    samplerInfo.minFilter = VK_FILTER_LINEAR;
+    samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.anisotropyEnable = VK_TRUE;
+    samplerInfo.maxAnisotropy = 16.0f;
+    samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+    samplerInfo.unnormalizedCoordinates = VK_FALSE;
+    samplerInfo.compareEnable = VK_FALSE;
+    samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+    samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+    samplerInfo.mipLodBias = 0.0f;
+    samplerInfo.minLod = 0.0f;
+    samplerInfo.maxLod = 0.0f;
+    
+    VkResult err = mDeviceFunctions->vkCreateSampler(device, &samplerInfo, nullptr, &mTextureSampler);
+    if (err != VK_SUCCESS)
+        qFatal("Failed to create texture sampler: %d", err);
+}
+
+// Handle image layout transitions for proper texture usage
+void RenderWindow::transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout) 
+{
+    VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+    
+    VkImageMemoryBarrier barrier = {};
+    barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    barrier.oldLayout = oldLayout;
+    barrier.newLayout = newLayout;
+    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.image = image;
+    barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    barrier.subresourceRange.baseMipLevel = 0;
+    barrier.subresourceRange.levelCount = 1;
+    barrier.subresourceRange.baseArrayLayer = 0;
+    barrier.subresourceRange.layerCount = 1;
+    
+    VkPipelineStageFlags sourceStage;
+    VkPipelineStageFlags destinationStage;
+    
+    // Define access masks and pipeline stages based on old/new layouts
+    if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
+        barrier.srcAccessMask = 0;
+        barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+        
+        sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+        destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+    } 
+    else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+        barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+        barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+        
+        sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+        destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+    }
+    else {
+        qFatal("Unsupported layout transition!");
+    }
+    
+    mDeviceFunctions->vkCmdPipelineBarrier(
+        commandBuffer,
+        sourceStage, destinationStage,
+        0,
+        0, nullptr,
+        0, nullptr,
+        1, &barrier
+    );
+    
+    endSingleTimeCommands(commandBuffer);
+}
+
+// Copy buffer data to an image (for texture loading)
+void RenderWindow::copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height) 
+{
+    VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+    
+    VkBufferImageCopy region = {};
+    region.bufferOffset = 0;
+    region.bufferRowLength = 0;
+    region.bufferImageHeight = 0;
+    region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    region.imageSubresource.mipLevel = 0;
+    region.imageSubresource.baseArrayLayer = 0;
+    region.imageSubresource.layerCount = 1;
+    region.imageOffset = { 0, 0, 0 };
+    region.imageExtent = { width, height, 1 };
+    
+    mDeviceFunctions->vkCmdCopyBufferToImage(
+        commandBuffer,
+        buffer,
+        image,
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        1,
+        &region
+    );
+    
+    endSingleTimeCommands(commandBuffer);
+}
+
+// Create a VkImage with the specified parameters
+void RenderWindow::createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
+                            VkImageUsageFlags usage, VkMemoryPropertyFlags properties,
+                            VkImage& image, VkDeviceMemory& imageMemory) 
+{
+    VkDevice device = mWindow->device();
+    
+    // Create image
+    VkImageCreateInfo imageInfo = {};
+    imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+    imageInfo.imageType = VK_IMAGE_TYPE_2D;
+    imageInfo.extent.width = width;
+    imageInfo.extent.height = height;
+    imageInfo.extent.depth = 1;
+    imageInfo.mipLevels = 1;
+    imageInfo.arrayLayers = 1;
+    imageInfo.format = format;
+    imageInfo.tiling = tiling;
+    imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    imageInfo.usage = usage;
+    imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+    imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    
+    VkResult err = mDeviceFunctions->vkCreateImage(device, &imageInfo, nullptr, &image);
+    if (err != VK_SUCCESS) {
+        qFatal("Failed to create image: %d", err);
+    }
+    
+    // Get memory requirements
+    VkMemoryRequirements memRequirements;
+    mDeviceFunctions->vkGetImageMemoryRequirements(device, image, &memRequirements);
+    
+    // Allocate memory
+    VkMemoryAllocateInfo allocInfo = {};
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;
+    
+    // Get physical device memory properties
+    VkPhysicalDeviceMemoryProperties memProperties;
+    mWindow->vulkanInstance()->functions()->vkGetPhysicalDeviceMemoryProperties(mWindow->physicalDevice(), &memProperties);
+    
+    allocInfo.memoryTypeIndex = getMemoryTypeIndex(memProperties, memRequirements.memoryTypeBits, properties);
+    
+    err = mDeviceFunctions->vkAllocateMemory(device, &allocInfo, nullptr, &imageMemory);
+    if (err != VK_SUCCESS) {
+        qFatal("Failed to allocate image memory: %d", err);
+    }
+    
+    // Bind memory to image
+    err = mDeviceFunctions->vkBindImageMemory(device, image, imageMemory, 0);
+    if (err != VK_SUCCESS) {
+        qFatal("Failed to bind image memory: %d", err);
+    }
+}
+
+void RenderWindow::updateLightingData()
+{
+    // Update view position to match camera position for accurate lighting calculations
+    // We use the player position for the view position
+    mLightingData.viewPosition[0] = mPlayerPosition.x();
+    mLightingData.viewPosition[1] = mPlayerPosition.y();
+    mLightingData.viewPosition[2] = mPlayerPosition.z();
+    
+    // Make a light that follows the player (slightly above and behind)
+    mLightingData.lightPosition[0] = mPlayerPosition.x() + 1.0f;
+    mLightingData.lightPosition[1] = mPlayerPosition.y() + 2.0f;
+    mLightingData.lightPosition[2] = mPlayerPosition.z() + 1.0f;
+    
+    // Set good lighting parameters
+    mLightingData.lightColor[0] = 1.0f;  // Full white light
+    mLightingData.lightColor[1] = 1.0f;
+    mLightingData.lightColor[2] = 1.0f;
+    mLightingData.ambientStrength = 0.3f;  // Increase ambient so objects aren't too dark
+    mLightingData.specularStrength = 0.5f;
+    mLightingData.shininess = 32.0f;
+    
+    // Update the lighting buffer with new data
+    VkDevice device = mWindow->device();
+    
+    // Create staging buffer for the updated data
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
+    
+    // Create staging buffer for lighting data
+    VkBufferCreateInfo stagingBufferInfo = {};
+    stagingBufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    stagingBufferInfo.size = sizeof(LightingInfo);
+    stagingBufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+    stagingBufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    
+    VkResult err = mDeviceFunctions->vkCreateBuffer(device, &stagingBufferInfo, nullptr, &stagingBuffer);
+    if (err != VK_SUCCESS) {
+        qWarning("Failed to create lighting staging buffer: %d", err);
+        return;
+    }
+    
+    VkMemoryRequirements stagingMemReq;
+    mDeviceFunctions->vkGetBufferMemoryRequirements(device, stagingBuffer, &stagingMemReq);
+    
+    VkMemoryAllocateInfo stagingAllocInfo = {};
+    stagingAllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    stagingAllocInfo.allocationSize = stagingMemReq.size;
+    
+    // Get memory properties
+    VkPhysicalDeviceMemoryProperties memProperties;
+    mWindow->vulkanInstance()->functions()->vkGetPhysicalDeviceMemoryProperties(mWindow->physicalDevice(), &memProperties);
+    
+    stagingAllocInfo.memoryTypeIndex = getMemoryTypeIndex(memProperties, 
+                                                         stagingMemReq.memoryTypeBits, 
+                                                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+    
+    err = mDeviceFunctions->vkAllocateMemory(device, &stagingAllocInfo, nullptr, &stagingBufferMemory);
+    if (err != VK_SUCCESS) {
+        mDeviceFunctions->vkDestroyBuffer(device, stagingBuffer, nullptr);
+        qWarning("Failed to allocate lighting staging buffer memory: %d", err);
+        return;
+    }
+    
+    err = mDeviceFunctions->vkBindBufferMemory(device, stagingBuffer, stagingBufferMemory, 0);
+    if (err != VK_SUCCESS) {
+        mDeviceFunctions->vkDestroyBuffer(device, stagingBuffer, nullptr);
+        mDeviceFunctions->vkFreeMemory(device, stagingBufferMemory, nullptr);
+        qWarning("Failed to bind lighting staging buffer memory: %d", err);
+        return;
+    }
+    
+    // Copy updated lighting data to staging buffer
+    void* data;
+    err = mDeviceFunctions->vkMapMemory(device, stagingBufferMemory, 0, sizeof(LightingInfo), 0, &data);
+    if (err != VK_SUCCESS) {
+        mDeviceFunctions->vkDestroyBuffer(device, stagingBuffer, nullptr);
+        mDeviceFunctions->vkFreeMemory(device, stagingBufferMemory, nullptr);
+        qWarning("Failed to map lighting staging buffer memory: %d", err);
+        return;
+    }
+    
+    memcpy(data, &mLightingData, sizeof(LightingInfo));
+    mDeviceFunctions->vkUnmapMemory(device, stagingBufferMemory);
+    
+    // Copy from staging buffer to device local buffer
+    VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+    
+    VkBufferCopy copyRegion = {};
+    copyRegion.size = sizeof(LightingInfo);
+    mDeviceFunctions->vkCmdCopyBuffer(commandBuffer, stagingBuffer, mLightingBuffer, 1, &copyRegion);
+    
+    endSingleTimeCommands(commandBuffer);
+    
+    // Clean up staging buffer
+    mDeviceFunctions->vkDestroyBuffer(device, stagingBuffer, nullptr);
+    mDeviceFunctions->vkFreeMemory(device, stagingBufferMemory, nullptr);
+    
+    // Debug output
+    qDebug() << "Updated lighting data - View position:" 
+             << mLightingData.viewPosition[0] << mLightingData.viewPosition[1] << mLightingData.viewPosition[2]
+             << "Light position:" 
+             << mLightingData.lightPosition[0] << mLightingData.lightPosition[1] << mLightingData.lightPosition[2];
 }
 
 
