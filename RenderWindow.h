@@ -7,9 +7,9 @@
 // Structure to represent collectible objects
 struct Collectible {
     QVector3D position;
-    bool collected;
+    bool isCollected;
 
-    Collectible(const QVector3D& pos) : position(pos), collected(false) {}
+    Collectible(const QVector3D& pos) : position(pos), isCollected(false) {}
 };
 
 // Structure to represent NPC enemies that patrol
@@ -43,6 +43,19 @@ struct PatrolEnemy {
             position += direction * speed;
         }
     }
+};
+
+// Structure for lighting data to match fragment shader
+struct LightingInfo {
+    float lightPosition[3];
+    float padding1;  // Explicit padding for std140 layout
+    float viewPosition[3];
+    float padding2;  // Explicit padding for std140 layout
+    float lightColor[3];
+    float ambientStrength;
+    float specularStrength;
+    float shininess;
+    float padding3[2];  // Padding to ensure proper alignment (16-byte)
 };
 
 class RenderWindow : public QVulkanWindowRenderer
@@ -123,6 +136,9 @@ public:
     // Collectible handling
     void checkIndoorCollectibleCollision();
     void checkGameWinCondition();
+    
+    // Texture handling
+    void createDefaultTexture(VkDevice device);
 
 private:
     VkShaderModule createShader(const QString &name);
@@ -270,4 +286,10 @@ private:
                     VkImageUsageFlags usage, VkMemoryPropertyFlags properties, 
                     VkImage& image, VkDeviceMemory& imageMemory);
     VkImageView createImageView(VkImage image, VkFormat format);
+
+    // Lighting uniform buffer
+    VkBuffer mLightingBuffer = VK_NULL_HANDLE;
+    VkDeviceMemory mLightingBufferMemory = VK_NULL_HANDLE;
+    VkDescriptorBufferInfo mLightingBufferInfo[QVulkanWindow::MAX_CONCURRENT_FRAME_COUNT];
+    LightingInfo mLightingData;
 };

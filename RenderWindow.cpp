@@ -5,269 +5,275 @@
 
 // ENLARGED ground vertex data (10x10 plane instead of 5x5)
 static float groundVertexData[] = {
-    -10.0f,  0.0f, -10.0f,   0.3f, 0.3f, 0.3f,  // Bottom-left
-    -10.0f,  0.0f,  10.0f,   0.3f, 0.3f, 0.3f,  // Top-left
-     10.0f,  0.0f, -10.0f,   0.3f, 0.3f, 0.3f,  // Bottom-right
+    // Position            // Color              // Texture coords
+    -10.0f,  0.0f, -10.0f,   0.3f, 0.3f, 0.3f,   0.0f, 0.0f,  // Bottom-left
+    -10.0f,  0.0f,  10.0f,   0.3f, 0.3f, 0.3f,   0.0f, 1.0f,  // Top-left
+     10.0f,  0.0f, -10.0f,   0.3f, 0.3f, 0.3f,   1.0f, 0.0f,  // Bottom-right
 
-    -10.0f,  0.0f,  10.0f,   0.3f, 0.3f, 0.3f,  // Top-left
-     10.0f,  0.0f,  10.0f,   0.3f, 0.3f, 0.3f,  // Top-right
-     10.0f,  0.0f, -10.0f,   0.3f, 0.3f, 0.3f   // Bottom-right
+    -10.0f,  0.0f,  10.0f,   0.3f, 0.3f, 0.3f,   0.0f, 1.0f,  // Top-left
+     10.0f,  0.0f,  10.0f,   0.3f, 0.3f, 0.3f,   1.0f, 1.0f,  // Top-right
+     10.0f,  0.0f, -10.0f,   0.3f, 0.3f, 0.3f,   1.0f, 0.0f   // Bottom-right
 };
 
 // FIXED Player cube vertex data (MUCH brighter blue color for visibility)
 static float playerVertexData[] = {
+    // Position            // Color              // Texture coords
     // Front face
-    -0.8f, -0.8f,  0.8f,   0.0f, 0.0f, 1.0f,  // Bright blue
-     0.8f, -0.8f,  0.8f,   0.0f, 0.0f, 1.0f,  
-    -0.8f,  0.8f,  0.8f,   0.0f, 0.0f, 1.0f,  
-     0.8f,  0.8f,  0.8f,   0.0f, 0.0f, 1.0f,  
-    -0.8f,  0.8f,  0.8f,   0.0f, 0.0f, 1.0f,  
-     0.8f, -0.8f,  0.8f,   0.0f, 0.0f, 1.0f,  
+    -0.8f, -0.8f,  0.8f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,  // Bottom-left
+     0.8f, -0.8f,  0.8f,   0.0f, 0.0f, 1.0f,   1.0f, 0.0f,  // Bottom-right
+    -0.8f,  0.8f,  0.8f,   0.0f, 0.0f, 1.0f,   0.0f, 1.0f,  // Top-left
+     0.8f,  0.8f,  0.8f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f,  // Top-right
+    -0.8f,  0.8f,  0.8f,   0.0f, 0.0f, 1.0f,   0.0f, 1.0f,  // Top-left
+     0.8f, -0.8f,  0.8f,   0.0f, 0.0f, 1.0f,   1.0f, 0.0f,  // Bottom-right
 
     // Back face
-    -0.8f, -0.8f, -0.8f,   0.0f, 0.0f, 1.0f,  
-     0.8f, -0.8f, -0.8f,   0.0f, 0.0f, 1.0f,  
-    -0.8f,  0.8f, -0.8f,   0.0f, 0.0f, 1.0f,  
-     0.8f,  0.8f, -0.8f,   0.0f, 0.0f, 1.0f,  
-    -0.8f,  0.8f, -0.8f,   0.0f, 0.0f, 1.0f,  
-     0.8f, -0.8f, -0.8f,   0.0f, 0.0f, 1.0f,  
+    -0.8f, -0.8f, -0.8f,   0.0f, 0.0f, 1.0f,   1.0f, 0.0f,  // Bottom-right
+     0.8f, -0.8f, -0.7f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,  // Bottom-left
+    -0.7f,  0.7f, -0.7f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f,  // Top-right
+     0.7f,  0.7f, -0.7f,   0.0f, 0.0f, 1.0f,   0.0f, 1.0f,  // Top-left
+    -0.7f,  0.7f, -0.7f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f,  // Top-right
+     0.7f, -0.7f, -0.7f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,  // Bottom-left
 
     // Left face
-    -0.8f, -0.8f, -0.8f,   0.0f, 0.0f, 1.0f,  
-    -0.8f, -0.8f,  0.8f,   0.0f, 0.0f, 1.0f,  
-    -0.8f,  0.8f, -0.8f,   0.0f, 0.0f, 1.0f,  
-    -0.8f,  0.8f,  0.8f,   0.0f, 0.0f, 1.0f,  
-    -0.8f,  0.8f, -0.8f,   0.0f, 0.0f, 1.0f,  
-    -0.8f, -0.8f,  0.8f,   0.0f, 0.0f, 1.0f, 
+    -0.8f, -0.8f, -0.8f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,  // Bottom-left
+    -0.8f, -0.8f,  0.8f,   0.0f, 0.0f, 1.0f,   1.0f, 0.0f,  // Bottom-right
+    -0.8f,  0.8f, -0.8f,   0.0f, 0.0f, 1.0f,   0.0f, 1.0f,  // Top-left
+    -0.8f,  0.8f,  0.8f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f,  // Top-right
+    -0.8f,  0.8f, -0.8f,   0.0f, 0.0f, 1.0f,   0.0f, 1.0f,  // Top-left
+    -0.7f, -0.7f,  0.7f,   0.0f, 0.0f, 1.0f,   1.0f, 0.0f,  // Bottom-right
 
     // Right face
-     0.8f, -0.8f, -0.8f,   0.0f, 0.0f, 1.0f,  
-     0.8f, -0.8f,  0.8f,   0.0f, 0.0f, 1.0f,  
-     0.8f,  0.8f, -0.8f,   0.0f, 0.0f, 1.0f,  
-     0.8f,  0.8f,  0.8f,   0.0f, 0.0f, 1.0f,  
-     0.8f,  0.8f, -0.8f,   0.0f, 0.0f, 1.0f,  
-     0.8f, -0.8f,  0.8f,   0.0f, 0.0f, 1.0f,  
+     0.7f, -0.7f, -0.7f,   0.0f, 0.0f, 1.0f,   1.0f, 0.0f,  // Bottom-right
+     0.7f, -0.7f,  0.7f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,  // Bottom-left
+     0.7f,  0.7f, -0.7f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f,  // Top-right
+     0.7f,  0.7f,  0.7f,   0.0f, 0.0f, 1.0f,   0.0f, 1.0f,  // Top-left
+     0.7f,  0.7f, -0.7f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f,  // Top-right
+     0.7f, -0.7f,  0.7f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,  // Bottom-left
 
     // Top face
-    -0.8f,  0.8f, -0.8f,   0.0f, 0.0f, 1.0f,  
-     0.8f,  0.8f, -0.8f,   0.0f, 0.0f, 1.0f,  
-    -0.8f,  0.8f,  0.8f,   0.0f, 0.0f, 1.0f,  
-     0.8f,  0.8f,  0.8f,   0.0f, 0.0f, 1.0f,  
-    -0.8f,  0.8f,  0.8f,   0.0f, 0.0f, 1.0f,  
-     0.8f,  0.8f, -0.8f,   0.0f, 0.0f, 1.0f,  
+    -0.7f,  0.7f, -0.7f,   0.0f, 0.0f, 1.0f,   0.0f, 1.0f,  // Top-left
+     0.7f,  0.7f, -0.7f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f,  // Top-right
+    -0.7f,  0.7f,  0.7f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,  // Bottom-left
+     0.7f,  0.7f,  0.7f,   0.0f, 0.0f, 1.0f,   1.0f, 0.0f,  // Bottom-right
+    -0.7f,  0.7f,  0.7f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,  // Bottom-left
+     0.7f,  0.7f, -0.7f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f,  // Top-right
 
     // Bottom face
-    -0.8f, -0.8f, -0.8f,   0.0f, 0.0f, 1.0f,  
-     0.8f, -0.8f, -0.8f,   0.0f, 0.0f, 1.0f,  
-    -0.8f, -0.8f,  0.8f,   0.0f, 0.0f, 1.0f,  
-     0.8f, -0.8f,  0.8f,   0.0f, 0.0f, 1.0f,  
-    -0.8f, -0.8f,  0.8f,   0.0f, 0.0f, 1.0f,  
-     0.8f, -0.8f, -0.8f,   0.0f, 0.0f, 1.0f    
+    -0.7f, -0.7f, -0.7f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,  // Bottom-left
+     0.7f, -0.7f, -0.7f,   0.0f, 0.0f, 1.0f,   1.0f, 0.0f,  // Bottom-right
+    -0.7f, -0.7f,  0.7f,   0.0f, 0.0f, 1.0f,   0.0f, 1.0f,  // Top-left
+     0.7f, -0.7f,  0.7f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f,  // Top-right
+    -0.7f, -0.7f,  0.7f,   0.0f, 0.0f, 1.0f,   0.0f, 1.0f,  // Top-left
+     0.7f, -0.7f, -0.7f,   0.0f, 0.0f, 1.0f,   1.0f, 0.0f   // Bottom-right
 };
 
 // FIXED Collectible vertex data (VERY bright yellow color)
 static float collectibleVertexData[] = {
+    // Position            // Color              // Texture coords
     // Front face (pure bright yellow)
-    -0.6f, -0.6f,  0.6f,   1.0f, 1.0f, 0.0f,  // Pure yellow
-     0.6f, -0.6f,  0.6f,   1.0f, 1.0f, 0.0f,  
-    -0.6f,  0.6f,  0.6f,   1.0f, 1.0f, 0.0f,  
-     0.6f,  0.6f,  0.6f,   1.0f, 1.0f, 0.0f,  
-    -0.6f,  0.6f,  0.6f,   1.0f, 1.0f, 0.0f,  
-     0.6f, -0.6f,  0.6f,   1.0f, 1.0f, 0.0f,  
+    -0.6f, -0.6f,  0.6f,   1.0f, 1.0f, 0.0f,   0.0f, 0.0f,  // Bottom-left
+     0.6f, -0.6f,  0.6f,   1.0f, 1.0f, 0.0f,   1.0f, 0.0f,  // Bottom-right
+    -0.6f,  0.6f,  0.6f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f,  // Top-left
+     0.6f,  0.6f,  0.6f,   1.0f, 1.0f, 0.0f,   1.0f, 1.0f,  // Top-right
+    -0.6f,  0.6f,  0.6f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f,  // Top-left
+     0.6f, -0.6f,  0.6f,   1.0f, 1.0f, 0.0f,   1.0f, 0.0f,  // Bottom-right
 
     // Back face
-    -0.6f, -0.6f, -0.6f,   1.0f, 1.0f, 0.0f,  
-     0.6f, -0.6f, -0.6f,   1.0f, 1.0f, 0.0f,  
-    -0.6f,  0.6f, -0.6f,   1.0f, 1.0f, 0.0f,  
-     0.6f,  0.6f, -0.6f,   1.0f, 1.0f, 0.0f,  
-    -0.6f,  0.6f, -0.6f,   1.0f, 1.0f, 0.0f,  
-     0.6f, -0.6f, -0.6f,   1.0f, 1.0f, 0.0f,  
+    -0.6f, -0.6f, -0.6f,   1.0f, 1.0f, 0.0f,   1.0f, 0.0f,  // Bottom-right
+     0.6f, -0.6f, -0.6f,   1.0f, 1.0f, 0.0f,   0.0f, 0.0f,  // Bottom-left
+    -0.6f,  0.6f, -0.6f,   1.0f, 1.0f, 0.0f,   1.0f, 1.0f,  // Top-right
+     0.6f,  0.6f, -0.6f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f,  // Top-left
+    -0.6f,  0.6f, -0.6f,   1.0f, 1.0f, 0.0f,   1.0f, 1.0f,  // Top-right
+     0.6f, -0.6f, -0.6f,   1.0f, 1.0f, 0.0f,   0.0f, 0.0f,  // Bottom-left
 
     // Left face
-    -0.6f, -0.6f, -0.6f,   1.0f, 1.0f, 0.0f,  
-    -0.6f, -0.6f,  0.6f,   1.0f, 1.0f, 0.0f,  
-    -0.6f,  0.6f, -0.6f,   1.0f, 1.0f, 0.0f,  
-    -0.6f,  0.6f,  0.6f,   1.0f, 1.0f, 0.0f,  
-    -0.6f,  0.6f, -0.6f,   1.0f, 1.0f, 0.0f,  
-    -0.6f, -0.6f,  0.6f,   1.0f, 1.0f, 0.0f,  
+    -0.6f, -0.6f, -0.6f,   1.0f, 1.0f, 0.0f,   0.0f, 0.0f,  // Bottom-left
+    -0.6f, -0.6f,  0.6f,   1.0f, 1.0f, 0.0f,   1.0f, 0.0f,  // Bottom-right
+    -0.6f,  0.6f, -0.6f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f,  // Top-left
+    -0.6f,  0.6f,  0.6f,   1.0f, 1.0f, 0.0f,   1.0f, 1.0f,  // Top-right
+    -0.6f,  0.6f, -0.6f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f,  // Top-left
+    -0.6f, -0.6f,  0.6f,   1.0f, 1.0f, 0.0f,   1.0f, 0.0f,  // Bottom-right
 
     // Right face
-     0.6f, -0.6f, -0.6f,   1.0f, 1.0f, 0.0f,  
-     0.6f, -0.6f,  0.6f,   1.0f, 1.0f, 0.0f,  
-     0.6f,  0.6f, -0.6f,   1.0f, 1.0f, 0.0f,  
-     0.6f,  0.6f,  0.6f,   1.0f, 1.0f, 0.0f,  
-     0.6f,  0.6f, -0.6f,   1.0f, 1.0f, 0.0f,  
-     0.6f, -0.6f,  0.6f,   1.0f, 1.0f, 0.0f,  
+     0.6f, -0.6f, -0.6f,   1.0f, 1.0f, 0.0f,   1.0f, 0.0f,  // Bottom-right
+     0.6f, -0.6f,  0.6f,   1.0f, 1.0f, 0.0f,   0.0f, 0.0f,  // Bottom-left
+     0.6f,  0.6f, -0.6f,   1.0f, 1.0f, 0.0f,   1.0f, 1.0f,  // Top-right
+     0.6f,  0.6f,  0.6f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f,  // Top-left
+     0.6f,  0.6f, -0.6f,   1.0f, 1.0f, 0.0f,   1.0f, 1.0f,  // Top-right
+     0.6f, -0.6f,  0.6f,   1.0f, 1.0f, 0.0f,   0.0f, 0.0f,  // Bottom-left
 
     // Top face
-    -0.6f,  0.6f, -0.6f,   1.0f, 1.0f, 0.0f,  
-     0.6f,  0.6f, -0.6f,   1.0f, 1.0f, 0.0f,  
-    -0.6f,  0.6f,  0.6f,   1.0f, 1.0f, 0.0f,  
-     0.6f,  0.6f,  0.6f,   1.0f, 1.0f, 0.0f,  
-    -0.6f,  0.6f,  0.6f,   1.0f, 1.0f, 0.0f,  
-     0.6f,  0.6f, -0.6f,   1.0f, 1.0f, 0.0f,  
+    -0.6f,  0.6f, -0.6f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f,  // Top-left
+     0.6f,  0.6f, -0.6f,   1.0f, 1.0f, 0.0f,   1.0f, 1.0f,  // Top-right
+    -0.6f,  0.6f,  0.6f,   1.0f, 1.0f, 0.0f,   0.0f, 0.0f,  // Bottom-left
+     0.6f,  0.6f,  0.6f,   1.0f, 1.0f, 0.0f,   1.0f, 0.0f,  // Bottom-right
+    -0.6f,  0.6f,  0.6f,   1.0f, 1.0f, 0.0f,   0.0f, 0.0f,  // Bottom-left
+     0.6f,  0.6f, -0.6f,   1.0f, 1.0f, 0.0f,   1.0f, 1.0f,  // Top-right
 
     // Bottom face
-    -0.6f, -0.6f, -0.6f,   1.0f, 1.0f, 0.0f,  
-     0.6f, -0.6f, -0.6f,   1.0f, 1.0f, 0.0f,  
-    -0.6f, -0.6f,  0.6f,   1.0f, 1.0f, 0.0f,  
-     0.6f, -0.6f,  0.6f,   1.0f, 1.0f, 0.0f,  
-    -0.6f, -0.6f,  0.6f,   1.0f, 1.0f, 0.0f,  
-     0.6f, -0.6f, -0.6f,   1.0f, 1.0f, 0.0f   
+    -0.6f, -0.6f, -0.6f,   1.0f, 1.0f, 0.0f,   0.0f, 0.0f,  // Bottom-left
+     0.6f, -0.6f, -0.6f,   1.0f, 1.0f, 0.0f,   1.0f, 0.0f,  // Bottom-right
+    -0.6f, -0.6f,  0.6f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f,  // Top-left
+     0.6f, -0.6f,  0.6f,   1.0f, 1.0f, 0.0f,   1.0f, 1.0f,  // Top-right
+    -0.6f, -0.6f,  0.6f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f,  // Top-left
+     0.6f, -0.6f, -0.6f,   1.0f, 1.0f, 0.0f,   1.0f, 0.0f   // Bottom-right
 };
 
 // NPC vertex data arrays with different colors for each NPC
 // Red NPC vertex data (for NPC 1)
 static float npcVertexData1[] = {
+    // Position            // Color              // Texture coords
     // Front face (bright red color)
-    -0.7f, -0.7f,  0.7f,   1.0f, 0.0f, 0.0f,  // Pure red
-     0.7f, -0.7f,  0.7f,   1.0f, 0.0f, 0.0f,  
-    -0.7f,  0.7f,  0.7f,   1.0f, 0.0f, 0.0f,  
-     0.7f,  0.7f,  0.7f,   1.0f, 0.0f, 0.0f,  
-    -0.7f,  0.7f,  0.7f,   1.0f, 0.0f, 0.0f,  
-     0.7f, -0.7f,  0.7f,   1.0f, 0.0f, 0.0f,  
+    -0.7f, -0.7f,  0.7f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,  // Bottom-left
+     0.7f, -0.7f,  0.7f,   1.0f, 0.0f, 0.0f,   1.0f, 0.0f,  // Bottom-right
+    -0.7f,  0.7f,  0.7f,   1.0f, 0.0f, 0.0f,   0.0f, 1.0f,  // Top-left
+     0.7f,  0.7f,  0.7f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,  // Top-right
+    -0.7f,  0.7f,  0.7f,   1.0f, 0.0f, 0.0f,   0.0f, 1.0f,  // Top-left
+     0.7f, -0.7f,  0.7f,   1.0f, 0.0f, 0.0f,   1.0f, 0.0f,  // Bottom-right
 
     // Back face
-    -0.7f, -0.7f, -0.7f,   1.0f, 0.0f, 0.0f,  
-     0.7f, -0.7f, -0.7f,   1.0f, 0.0f, 0.0f,  
-    -0.7f,  0.7f, -0.7f,   1.0f, 0.0f, 0.0f,  
-     0.7f,  0.7f, -0.7f,   1.0f, 0.0f, 0.0f,  
-    -0.7f,  0.7f, -0.7f,   1.0f, 0.0f, 0.0f,  
-     0.7f, -0.7f, -0.7f,   1.0f, 0.0f, 0.0f,  
+    -0.7f, -0.7f, -0.7f,   1.0f, 0.0f, 0.0f,   1.0f, 0.0f,  // Bottom-right
+     0.7f, -0.7f, -0.7f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,  // Bottom-left
+    -0.7f,  0.7f, -0.7f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,  // Top-right
+     0.7f,  0.7f, -0.7f,   1.0f, 0.0f, 0.0f,   0.0f, 1.0f,  // Top-left
+    -0.7f,  0.7f, -0.7f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,  // Top-right
+     0.7f, -0.7f, -0.7f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,  // Bottom-left
 
     // Left face
-    -0.7f, -0.7f, -0.7f,   1.0f, 0.0f, 0.0f,  
-    -0.7f, -0.7f,  0.7f,   1.0f, 0.0f, 0.0f,  
-    -0.7f,  0.7f, -0.7f,   1.0f, 0.0f, 0.0f,  
-    -0.7f,  0.7f,  0.7f,   1.0f, 0.0f, 0.0f,  
-    -0.7f,  0.7f, -0.7f,   1.0f, 0.0f, 0.0f,  
-    -0.7f, -0.7f,  0.7f,   1.0f, 0.0f, 0.0f,  
+    -0.7f, -0.7f, -0.7f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,  // Bottom-left
+    -0.7f, -0.7f,  0.7f,   1.0f, 0.0f, 0.0f,   1.0f, 0.0f,  // Bottom-right
+    -0.7f,  0.7f, -0.7f,   1.0f, 0.0f, 0.0f,   0.0f, 1.0f,  // Top-left
+    -0.7f,  0.7f,  0.7f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,  // Top-right
+    -0.7f,  0.7f, -0.7f,   1.0f, 0.0f, 0.0f,   0.0f, 1.0f,  // Top-left
+    -0.7f, -0.7f,  0.7f,   1.0f, 0.0f, 0.0f,   1.0f, 0.0f,  // Bottom-right
 
     // Right face
-     0.7f, -0.7f, -0.7f,   1.0f, 0.0f, 0.0f,  
-     0.7f, -0.7f,  0.7f,   1.0f, 0.0f, 0.0f,  
-     0.7f,  0.7f, -0.7f,   1.0f, 0.0f, 0.0f,  
-     0.7f,  0.7f,  0.7f,   1.0f, 0.0f, 0.0f,  
-     0.7f,  0.7f, -0.7f,   1.0f, 0.0f, 0.0f,  
-     0.7f, -0.7f,  0.7f,   1.0f, 0.0f, 0.0f,  
+     0.7f, -0.7f, -0.7f,   1.0f, 0.0f, 0.0f,   1.0f, 0.0f,  // Bottom-right
+     0.7f, -0.7f,  0.7f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,  // Bottom-left
+     0.7f,  0.7f, -0.7f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,  // Top-right
+     0.7f,  0.7f,  0.7f,   1.0f, 0.0f, 0.0f,   0.0f, 1.0f,  // Top-left
+     0.7f,  0.7f, -0.7f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,  // Top-right
+     0.7f, -0.7f,  0.7f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,  // Bottom-left
 
     // Top face
-    -0.7f,  0.7f, -0.7f,   1.0f, 0.0f, 0.0f,  
-     0.7f,  0.7f, -0.7f,   1.0f, 0.0f, 0.0f,  
-    -0.7f,  0.7f,  0.7f,   1.0f, 0.0f, 0.0f,  
-     0.7f,  0.7f,  0.7f,   1.0f, 0.0f, 0.0f,  
-    -0.7f,  0.7f,  0.7f,   1.0f, 0.0f, 0.0f,  
-     0.7f,  0.7f, -0.7f,   1.0f, 0.0f, 0.0f,  
+    -0.7f,  0.7f, -0.7f,   1.0f, 0.0f, 0.0f,   0.0f, 1.0f,  // Top-left
+     0.7f,  0.7f, -0.7f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,  // Top-right
+    -0.7f,  0.7f,  0.7f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,  // Bottom-left
+     0.7f,  0.7f,  0.7f,   1.0f, 0.0f, 0.0f,   1.0f, 0.0f,  // Bottom-right
+    -0.7f,  0.7f,  0.7f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,  // Bottom-left
+     0.7f,  0.7f, -0.7f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,  // Top-right
 
     // Bottom face
-    -0.7f, -0.7f, -0.7f,   1.0f, 0.0f, 0.0f,  
-     0.7f, -0.7f, -0.7f,   1.0f, 0.0f, 0.0f,  
-    -0.7f, -0.7f,  0.7f,   1.0f, 0.0f, 0.0f,  
-     0.7f, -0.7f,  0.7f,   1.0f, 0.0f, 0.0f,  
-    -0.7f, -0.7f,  0.7f,   1.0f, 0.0f, 0.0f,  
-     0.7f, -0.7f, -0.7f,   1.0f, 0.0f, 0.0f   
+    -0.7f, -0.7f, -0.7f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,  // Bottom-left
+     0.7f, -0.7f, -0.7f,   1.0f, 0.0f, 0.0f,   1.0f, 0.0f,  // Bottom-right
+    -0.7f, -0.7f,  0.7f,   1.0f, 0.0f, 0.0f,   0.0f, 1.0f,  // Top-left
+     0.7f, -0.7f,  0.7f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,  // Top-right
+    -0.7f, -0.7f,  0.7f,   1.0f, 0.0f, 0.0f,   0.0f, 1.0f,  // Top-left
+     0.7f, -0.7f, -0.7f,   1.0f, 0.0f, 0.0f,   1.0f, 0.0f   // Bottom-right
 };
 
 // Green NPC vertex data (for NPC 2)
 static float npcVertexData2[] = {
+    // Position            // Color              // Texture coords
     // Front face (bright green color)
-    -0.7f, -0.7f,  0.7f,   0.0f, 1.0f, 0.0f,  // Pure green
-     0.7f, -0.7f,  0.7f,   0.0f, 1.0f, 0.0f,  
-    -0.7f,  0.7f,  0.7f,   0.0f, 1.0f, 0.0f,  
-     0.7f,  0.7f,  0.7f,   0.0f, 1.0f, 0.0f,  
-    -0.7f,  0.7f,  0.7f,   0.0f, 1.0f, 0.0f,  
-     0.7f, -0.7f,  0.7f,   0.0f, 1.0f, 0.0f,  
+    -0.7f, -0.7f,  0.7f,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f,  // Bottom-left
+     0.7f, -0.7f,  0.7f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,  // Bottom-right
+    -0.7f,  0.7f,  0.7f,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f,  // Top-left
+     0.7f,  0.7f,  0.7f,   0.0f, 1.0f, 0.0f,   1.0f, 1.0f,  // Top-right
+    -0.7f,  0.7f,  0.7f,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f,  // Top-left
+     0.7f, -0.7f,  0.7f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,  // Bottom-right
 
     // Back face
-    -0.7f, -0.7f, -0.7f,   0.0f, 1.0f, 0.0f,  
-     0.7f, -0.7f, -0.7f,   0.0f, 1.0f, 0.0f,  
-    -0.7f,  0.7f, -0.7f,   0.0f, 1.0f, 0.0f,  
-     0.7f,  0.7f, -0.7f,   0.0f, 1.0f, 0.0f,  
-    -0.7f,  0.7f, -0.7f,   0.0f, 1.0f, 0.0f,  
-     0.7f, -0.7f, -0.7f,   0.0f, 1.0f, 0.0f,  
+    -0.7f, -0.7f, -0.7f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,  // Bottom-right
+     0.7f, -0.7f, -0.7f,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f,  // Bottom-left
+    -0.7f,  0.7f, -0.7f,   0.0f, 1.0f, 0.0f,   1.0f, 1.0f,  // Top-right
+     0.7f,  0.7f, -0.7f,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f,  // Top-left
+    -0.7f,  0.7f, -0.7f,   0.0f, 1.0f, 0.0f,   1.0f, 1.0f,  // Top-right
+     0.7f, -0.7f, -0.7f,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f,  // Bottom-left
 
     // Left face
-    -0.7f, -0.7f, -0.7f,   0.0f, 1.0f, 0.0f,  
-    -0.7f, -0.7f,  0.7f,   0.0f, 1.0f, 0.0f,  
-    -0.7f,  0.7f, -0.7f,   0.0f, 1.0f, 0.0f,  
-    -0.7f,  0.7f,  0.7f,   0.0f, 1.0f, 0.0f,  
-    -0.7f,  0.7f, -0.7f,   0.0f, 1.0f, 0.0f,  
-    -0.7f, -0.7f,  0.7f,   0.0f, 1.0f, 0.0f,  
+    -0.7f, -0.7f, -0.7f,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f,  // Bottom-left
+    -0.7f, -0.7f,  0.7f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,  // Bottom-right
+    -0.7f,  0.7f, -0.7f,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f,  // Top-left
+    -0.7f,  0.7f,  0.7f,   0.0f, 1.0f, 0.0f,   1.0f, 1.0f,  // Top-right
+    -0.7f,  0.7f, -0.7f,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f,  // Top-left
+    -0.7f, -0.7f,  0.7f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,  // Bottom-right
 
     // Right face
-     0.7f, -0.7f, -0.7f,   0.0f, 1.0f, 0.0f,  
-     0.7f, -0.7f,  0.7f,   0.0f, 1.0f, 0.0f,  
-     0.7f,  0.7f, -0.7f,   0.0f, 1.0f, 0.0f,  
-     0.7f,  0.7f,  0.7f,   0.0f, 1.0f, 0.0f,  
-     0.7f,  0.7f, -0.7f,   0.0f, 1.0f, 0.0f,  
-     0.7f, -0.7f,  0.7f,   0.0f, 1.0f, 0.0f,  
+     0.7f, -0.7f, -0.7f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,  // Bottom-right
+     0.7f, -0.7f,  0.7f,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f,  // Bottom-left
+     0.7f,  0.7f, -0.7f,   0.0f, 1.0f, 0.0f,   1.0f, 1.0f,  // Top-right
+     0.7f,  0.7f,  0.7f,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f,  // Top-left
+     0.7f,  0.7f, -0.7f,   0.0f, 1.0f, 0.0f,   1.0f, 1.0f,  // Top-right
+     0.7f, -0.7f,  0.7f,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f,  // Bottom-left
 
     // Top face
-    -0.7f,  0.7f, -0.7f,   0.0f, 1.0f, 0.0f,  
-     0.7f,  0.7f, -0.7f,   0.0f, 1.0f, 0.0f,  
-    -0.7f,  0.7f,  0.7f,   0.0f, 1.0f, 0.0f,  
-     0.7f,  0.7f,  0.7f,   0.0f, 1.0f, 0.0f,  
-    -0.7f,  0.7f,  0.7f,   0.0f, 1.0f, 0.0f,  
-     0.7f,  0.7f, -0.7f,   0.0f, 1.0f, 0.0f,  
+    -0.7f,  0.7f, -0.7f,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f,  // Top-left
+     0.7f,  0.7f, -0.7f,   0.0f, 1.0f, 0.0f,   1.0f, 1.0f,  // Top-right
+    -0.7f,  0.7f,  0.7f,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f,  // Bottom-left
+     0.7f,  0.7f,  0.7f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,  // Bottom-right
+    -0.7f,  0.7f,  0.7f,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f,  // Bottom-left
+     0.7f,  0.7f, -0.7f,   0.0f, 1.0f, 0.0f,   1.0f, 1.0f,  // Top-right
 
     // Bottom face
-    -0.7f, -0.7f, -0.7f,   0.0f, 1.0f, 0.0f,  
-     0.7f, -0.7f, -0.7f,   0.0f, 1.0f, 0.0f,  
-    -0.7f, -0.7f,  0.6f,   1.0f, 1.0f, 0.0f,  
-     0.7f, -0.7f,  0.6f,   1.0f, 1.0f, 0.0f,  
-    -0.7f, -0.7f,  0.6f,   1.0f, 1.0f, 0.0f,  
-     0.7f, -0.7f, -0.6f,   1.0f, 1.0f, 0.0f   
+    -0.7f, -0.7f, -0.7f,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f,  // Bottom-left
+     0.7f, -0.7f, -0.7f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,  // Bottom-right
+    -0.7f, -0.7f,  0.7f,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f,  // Top-left
+     0.7f, -0.7f,  0.7f,   0.0f, 1.0f, 0.0f,   1.0f, 1.0f,  // Top-right
+    -0.7f, -0.7f,  0.7f,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f,  // Top-left
+     0.7f, -0.7f, -0.7f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f   // Bottom-right
 };
 
 // Blue NPC vertex data (for NPC 3)
 static float npcVertexData3[] = {
+    // Position            // Color              // Texture coords
     // Front face (bright blue color)
-    -0.7f, -0.7f,  0.7f,   0.0f, 0.5f, 1.0f,  // Bright blue
-     0.7f, -0.7f,  0.7f,   0.0f, 0.5f, 1.0f,  
-    -0.7f,  0.7f,  0.7f,   0.0f, 0.5f, 1.0f,  
-     0.7f,  0.7f,  0.7f,   0.0f, 0.5f, 1.0f,  
-    -0.7f,  0.7f,  0.7f,   0.0f, 0.5f, 1.0f,  
-     0.7f, -0.7f,  0.7f,   0.0f, 0.5f, 1.0f,  
+    -0.7f, -0.7f,  0.7f,   0.0f, 0.5f, 1.0f,   0.0f, 0.0f,  // Bottom-left
+     0.7f, -0.7f,  0.7f,   0.0f, 0.5f, 1.0f,   1.0f, 0.0f,  // Bottom-right
+    -0.7f,  0.7f,  0.7f,   0.0f, 0.5f, 1.0f,   0.0f, 1.0f,  // Top-left
+     0.7f,  0.7f,  0.7f,   0.0f, 0.5f, 1.0f,   1.0f, 1.0f,  // Top-right
+    -0.7f,  0.7f,  0.7f,   0.0f, 0.5f, 1.0f,   0.0f, 1.0f,  // Top-left
+     0.7f, -0.7f,  0.7f,   0.0f, 0.5f, 1.0f,   1.0f, 0.0f,  // Bottom-right
 
     // Back face
-    -0.7f, -0.7f, -0.7f,   0.0f, 0.5f, 1.0f,  
-     0.7f, -0.7f, -0.7f,   0.0f, 0.5f, 1.0f,  
-    -0.7f,  0.7f, -0.7f,   0.0f, 0.5f, 1.0f,  
-     0.7f,  0.7f, -0.7f,   0.0f, 0.5f, 1.0f,  
-    -0.7f,  0.7f, -0.7f,   0.0f, 0.5f, 1.0f,  
-     0.7f, -0.7f, -0.7f,   0.0f, 0.5f, 1.0f,  
+    -0.7f, -0.7f, -0.7f,   0.0f, 0.5f, 1.0f,   1.0f, 0.0f,  // Bottom-right
+     0.7f, -0.7f, -0.7f,   0.0f, 0.5f, 1.0f,   0.0f, 0.0f,  // Bottom-left
+    -0.7f,  0.7f, -0.7f,   0.0f, 0.5f, 1.0f,   1.0f, 1.0f,  // Top-right
+     0.7f,  0.7f, -0.7f,   0.0f, 0.5f, 1.0f,   0.0f, 1.0f,  // Top-left
+    -0.7f,  0.7f, -0.7f,   0.0f, 0.5f, 1.0f,   1.0f, 1.0f,  // Top-right
+     0.7f, -0.7f, -0.7f,   0.0f, 0.5f, 1.0f,   0.0f, 0.0f,  // Bottom-left
 
     // Left face
-    -0.7f, -0.7f, -0.7f,   0.0f, 0.5f, 1.0f,  
-    -0.7f, -0.7f,  0.7f,   0.0f, 0.5f, 1.0f,  
-    -0.7f,  0.7f, -0.7f,   0.0f, 0.5f, 1.0f,  
-    -0.7f,  0.7f,  0.7f,   0.0f, 0.5f, 1.0f,  
-    -0.7f,  0.7f, -0.7f,   0.0f, 0.5f, 1.0f,  
-    -0.7f, -0.7f,  0.7f,   0.0f, 0.5f, 1.0f,  
+    -0.7f, -0.7f, -0.7f,   0.0f, 0.5f, 1.0f,   0.0f, 0.0f,  // Bottom-left
+    -0.7f, -0.7f,  0.7f,   0.0f, 0.5f, 1.0f,   1.0f, 0.0f,  // Bottom-right
+    -0.7f,  0.7f, -0.7f,   0.0f, 0.5f, 1.0f,   0.0f, 1.0f,  // Top-left
+    -0.7f,  0.7f,  0.7f,   0.0f, 0.5f, 1.0f,   1.0f, 1.0f,  // Top-right
+    -0.7f,  0.7f, -0.7f,   0.0f, 0.5f, 1.0f,   0.0f, 1.0f,  // Top-left
+    -0.7f, -0.7f,  0.7f,   0.0f, 0.5f, 1.0f,   1.0f, 0.0f,  // Bottom-right
 
     // Right face
-     0.7f, -0.7f, -0.7f,   0.0f, 0.5f, 1.0f,  
-     0.7f, -0.7f,  0.7f,   0.0f, 0.5f, 1.0f,  
-     0.7f,  0.7f, -0.7f,   0.0f, 0.5f, 1.0f,  
-     0.7f,  0.7f,  0.7f,   0.0f, 0.5f, 1.0f,  
-     0.7f,  0.7f, -0.7f,   0.0f, 0.5f, 1.0f,  
-     0.7f, -0.7f,  0.7f,   0.0f, 0.5f, 1.0f,  
+     0.7f, -0.7f, -0.7f,   0.0f, 0.5f, 1.0f,   1.0f, 0.0f,  // Bottom-right
+     0.7f, -0.7f,  0.7f,   0.0f, 0.5f, 1.0f,   0.0f, 0.0f,  // Bottom-left
+     0.7f,  0.7f, -0.7f,   0.0f, 0.5f, 1.0f,   1.0f, 1.0f,  // Top-right
+     0.7f,  0.7f,  0.7f,   0.0f, 0.5f, 1.0f,   0.0f, 1.0f,  // Top-left
+     0.7f,  0.7f, -0.7f,   0.0f, 0.5f, 1.0f,   1.0f, 1.0f,  // Top-right
+     0.7f, -0.7f,  0.7f,   0.0f, 0.5f, 1.0f,   0.0f, 0.0f,  // Bottom-left
 
     // Top face
-    -0.7f,  0.7f, -0.7f,   0.0f, 0.5f, 1.0f,  
-     0.7f,  0.7f, -0.7f,   0.0f, 0.5f, 1.0f,  
-    -0.7f,  0.7f,  0.7f,   0.0f, 0.5f, 1.0f,  
-     0.7f,  0.7f,  0.7f,   0.0f, 0.5f, 1.0f,  
-    -0.7f,  0.7f,  0.7f,   0.0f, 0.5f, 1.0f,  
-     0.7f,  0.7f, -0.7f,   0.0f, 0.5f, 1.0f,  
+    -0.7f,  0.7f, -0.7f,   0.0f, 0.5f, 1.0f,   0.0f, 1.0f,  // Top-left
+     0.7f,  0.7f, -0.7f,   0.0f, 0.5f, 1.0f,   1.0f, 1.0f,  // Top-right
+    -0.7f,  0.7f,  0.7f,   0.0f, 0.5f, 1.0f,   0.0f, 0.0f,  // Bottom-left
+     0.7f,  0.7f,  0.7f,   0.0f, 0.5f, 1.0f,   1.0f, 0.0f,  // Bottom-right
+    -0.7f,  0.7f,  0.7f,   0.0f, 0.5f, 1.0f,   0.0f, 0.0f,  // Bottom-left
+     0.7f,  0.7f, -0.7f,   0.0f, 0.5f, 1.0f,   1.0f, 1.0f,  // Top-right
 
     // Bottom face
-    -0.7f, -0.7f, -0.7f,   0.0f, 0.5f, 1.0f,  
-     0.7f, -0.7f, -0.7f,   0.0f, 0.5f, 1.0f,  
-    -0.7f, -0.7f,  0.7f,   0.0f, 0.5f, 1.0f,  
-     0.7f, -0.7f,  0.7f,   0.0f, 0.5f, 1.0f,  
-    -0.7f, -0.7f,  0.7f,   0.0f, 0.5f, 1.0f,  
-     0.7f, -0.7f, -0.7f,   0.0f, 0.5f, 1.0f   
+    -0.7f, -0.7f, -0.7f,   0.0f, 0.5f, 1.0f,   0.0f, 0.0f,  // Bottom-left
+     0.7f, -0.7f, -0.7f,   0.0f, 0.5f, 1.0f,   1.0f, 0.0f,  // Bottom-right
+    -0.7f, -0.7f,  0.7f,   0.0f, 0.5f, 1.0f,   0.0f, 1.0f,  // Top-left
+     0.7f, -0.7f,  0.7f,   0.0f, 0.5f, 1.0f,   1.0f, 1.0f,  // Top-right
+    -0.7f, -0.7f,  0.7f,   0.0f, 0.5f, 1.0f,   0.0f, 1.0f,  // Top-left
+     0.7f, -0.7f, -0.7f,   0.0f, 0.5f, 1.0f,   1.0f, 0.0f   // Bottom-right
 };
 
 //House vertex data - brown walls
@@ -698,11 +704,131 @@ void RenderWindow::initResources()
     
     mDeviceFunctions->vkUnmapMemory(logicalDevice, mBufferMemory);
 
+    // Create a default texture (white 2x2 texture) if no texture is loaded
+    createDefaultTexture(logicalDevice);
+
+    // Create lighting uniform buffer
+    const VkDeviceSize lightingBufferSize = sizeof(LightingInfo);
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
+    
+    // Create staging buffer for lighting data
+    VkBufferCreateInfo stagingBufferInfo = {};
+    stagingBufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    stagingBufferInfo.size = lightingBufferSize;
+    stagingBufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+    stagingBufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    
+    err = mDeviceFunctions->vkCreateBuffer(logicalDevice, &stagingBufferInfo, nullptr, &stagingBuffer);
+    if (err != VK_SUCCESS)
+        qFatal("Failed to create lighting staging buffer: %d", err);
+    
+    VkMemoryRequirements stagingMemReq;
+    mDeviceFunctions->vkGetBufferMemoryRequirements(logicalDevice, stagingBuffer, &stagingMemReq);
+    
+    VkMemoryAllocateInfo stagingAllocInfo = {};
+    stagingAllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    stagingAllocInfo.allocationSize = stagingMemReq.size;
+    // Get memory properties
+    VkPhysicalDeviceMemoryProperties memProperties;
+    mWindow->vulkanInstance()->functions()->vkGetPhysicalDeviceMemoryProperties(mWindow->physicalDevice(), &memProperties);
+    
+    stagingAllocInfo.memoryTypeIndex = getMemoryTypeIndex(memProperties, 
+                                                         stagingMemReq.memoryTypeBits, 
+                                                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+    
+    err = mDeviceFunctions->vkAllocateMemory(logicalDevice, &stagingAllocInfo, nullptr, &stagingBufferMemory);
+    if (err != VK_SUCCESS)
+        qFatal("Failed to allocate lighting staging buffer memory: %d", err);
+    
+    err = mDeviceFunctions->vkBindBufferMemory(logicalDevice, stagingBuffer, stagingBufferMemory, 0);
+    if (err != VK_SUCCESS)
+        qFatal("Failed to bind lighting staging buffer memory: %d", err);
+    
+    // Create actual lighting buffer
+    VkBufferCreateInfo lightingBufferInfo = {};
+    lightingBufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    lightingBufferInfo.size = lightingBufferSize;
+    lightingBufferInfo.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+    lightingBufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    
+    err = mDeviceFunctions->vkCreateBuffer(logicalDevice, &lightingBufferInfo, nullptr, &mLightingBuffer);
+    if (err != VK_SUCCESS)
+        qFatal("Failed to create lighting buffer: %d", err);
+    
+    VkMemoryRequirements lightingMemReq;
+    mDeviceFunctions->vkGetBufferMemoryRequirements(logicalDevice, mLightingBuffer, &lightingMemReq);
+    
+    // Reuse memProperties from above
+    mWindow->vulkanInstance()->functions()->vkGetPhysicalDeviceMemoryProperties(mWindow->physicalDevice(), &memProperties);
+    
+    VkMemoryAllocateInfo allocInfo = {};
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = lightingMemReq.size;
+    allocInfo.memoryTypeIndex = getMemoryTypeIndex(memProperties, 
+                                                 lightingMemReq.memoryTypeBits, 
+                                                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    
+    err = mDeviceFunctions->vkAllocateMemory(logicalDevice, &allocInfo, nullptr, &mLightingBufferMemory);
+    if (err != VK_SUCCESS)
+        qFatal("Failed to allocate lighting buffer memory: %d", err);
+    
+    err = mDeviceFunctions->vkBindBufferMemory(logicalDevice, mLightingBuffer, mLightingBufferMemory, 0);
+    if (err != VK_SUCCESS)
+        qFatal("Failed to bind lighting buffer memory: %d", err);
+    
+    // Copy lighting data to staging buffer
+    void* data;
+    err = mDeviceFunctions->vkMapMemory(logicalDevice, stagingBufferMemory, 0, lightingBufferSize, 0, &data);
+    if (err != VK_SUCCESS)
+        qFatal("Failed to map lighting staging buffer memory: %d", err);
+    
+    // Initialize lighting data
+    mLightingData.lightPosition[0] = 2.0f;
+    mLightingData.lightPosition[1] = 2.0f;
+    mLightingData.lightPosition[2] = 2.0f;
+    mLightingData.padding1 = 0.0f;
+    mLightingData.viewPosition[0] = 0.0f;
+    mLightingData.viewPosition[1] = 0.0f;
+    mLightingData.viewPosition[2] = 5.0f;
+    mLightingData.padding2 = 0.0f;
+    mLightingData.lightColor[0] = 1.0f;
+    mLightingData.lightColor[1] = 1.0f;
+    mLightingData.lightColor[2] = 1.0f;
+    mLightingData.ambientStrength = 0.2f;
+    mLightingData.specularStrength = 0.5f;
+    mLightingData.shininess = 32.0f;
+    mLightingData.padding3[0] = 0.0f;
+    mLightingData.padding3[1] = 0.0f;
+    
+    memcpy(data, &mLightingData, sizeof(LightingInfo));
+    mDeviceFunctions->vkUnmapMemory(logicalDevice, stagingBufferMemory);
+    
+    // Copy from staging buffer to device local buffer
+    VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+    
+    VkBufferCopy copyRegion = {};
+    copyRegion.size = lightingBufferSize;
+    mDeviceFunctions->vkCmdCopyBuffer(commandBuffer, stagingBuffer, mLightingBuffer, 1, &copyRegion);
+    
+    endSingleTimeCommands(commandBuffer);
+    
+    // Clean up staging buffer
+    mDeviceFunctions->vkDestroyBuffer(logicalDevice, stagingBuffer, nullptr);
+    mDeviceFunctions->vkFreeMemory(logicalDevice, stagingBufferMemory, nullptr);
+    
+    // Set up lighting buffer info for descriptor sets
+    for (int i = 0; i < concurrentFrameCount; ++i) {
+        mLightingBufferInfo[i].buffer = mLightingBuffer;
+        mLightingBufferInfo[i].offset = 0;
+        mLightingBufferInfo[i].range = sizeof(LightingInfo);
+    }
+
     /********************************* Vertex layout: *********************************/
     //The size of each vertex to be passed to the shader
     VkVertexInputBindingDescription vertexBindingDesc = {
         0, // binding - has to match that in VkVertexInputAttributeDescription and startNextFrame()s m_devFuncs->vkCmdBindVertexBuffers
-        6 * sizeof(float), // stride account for X, Y, Z, R, G, B
+        8 * sizeof(float), // stride account for X, Y, Z, R, G, B, U, V (positions, colors, texture coords)
         VK_VERTEX_INPUT_RATE_VERTEX
     };
 
@@ -720,6 +846,12 @@ void RenderWindow::initResources()
             0, // binding
             VK_FORMAT_R32G32B32_SFLOAT,
             3 * sizeof(float) // offset to account for X, Y, Z
+        },
+        { // texture coordinates
+            2, // location has to correspond to the layout(location = x) in the shader
+            0, // binding
+            VK_FORMAT_R32G32_SFLOAT,
+            6 * sizeof(float) // offset to account for X, Y, Z, R, G, B
         }
     };
 
@@ -729,22 +861,25 @@ void RenderWindow::initResources()
     vertexInputInfo.flags = 0;
     vertexInputInfo.vertexBindingDescriptionCount = 1;
     vertexInputInfo.pVertexBindingDescriptions = &vertexBindingDesc;
-    vertexInputInfo.vertexAttributeDescriptionCount = 2;
+    vertexInputInfo.vertexAttributeDescriptionCount = 3; // Now three attributes instead of two
     vertexInputInfo.pVertexAttributeDescriptions = vertexAttrDesc;
 
     // Set up descriptor pool for all objects (ground, player, collectibles, and 3 separate NPCs)
-    VkDescriptorPoolSize descPoolSizes = { 
-        VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 
-        uint32_t(concurrentFrameCount * 10) // Ten objects: ground, player, collectible, NPC1, NPC2, NPC3, house walls, house door, house roof, spare
-    };
+    VkDescriptorPoolSize descPoolSizes[2] = {};
     
-    VkDescriptorPoolCreateInfo descPoolInfo;
-    memset(&descPoolInfo, 0, sizeof(descPoolInfo));
+    // First type: Uniform buffers
+    descPoolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    descPoolSizes[0].descriptorCount = 20 * concurrentFrameCount; // 2 for each buffer per frame (MVP + lighting)
+    
+    // Second type: Combined image samplers
+    descPoolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    descPoolSizes[1].descriptorCount = 10 * concurrentFrameCount; // 1 for each object that needs textures per frame
+    
+    VkDescriptorPoolCreateInfo descPoolInfo = {};
     descPoolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    descPoolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT; // Add this flag to allow freeing individual sets
-    descPoolInfo.maxSets = concurrentFrameCount * 10; // Ten objects: ground, player, collectible, NPC1, NPC2, NPC3, house walls, house door, house roof, spare
-    descPoolInfo.poolSizeCount = 1;
-    descPoolInfo.pPoolSizes = &descPoolSizes;
+    descPoolInfo.maxSets = 20 * concurrentFrameCount; // Total number of descriptor sets
+    descPoolInfo.poolSizeCount = 2; // Two types
+    descPoolInfo.pPoolSizes = descPoolSizes;
     
     // Destroy old pool if it exists
     if (mDescriptorPool != VK_NULL_HANDLE) {
@@ -757,20 +892,37 @@ void RenderWindow::initResources()
     if (err != VK_SUCCESS)
         qFatal("Failed to create descriptor pool: %d", err);
 
-    /********************************* Uniform (projection matrix) bindings: *********************************/
-    VkDescriptorSetLayoutBinding layoutBinding = {
-        0, // binding
-        VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-        1,
-        VK_SHADER_STAGE_VERTEX_BIT,
-        nullptr
-    };
+    /********************************* Descriptor Set Layout: Uniform buffer and texture sampler *********************************/
+    // Create three bindings: one for uniform buffer, one for texture sampler, and one for lighting
+    VkDescriptorSetLayoutBinding layoutBindings[3] = {};
+    
+    // Binding 0: Uniform buffer (MVP matrix)
+    layoutBindings[0].binding = 0;
+    layoutBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    layoutBindings[0].descriptorCount = 1;
+    layoutBindings[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+    layoutBindings[0].pImmutableSamplers = nullptr;
+    
+    // Binding 1: Texture sampler (for fragment shader)
+    layoutBindings[1].binding = 1;
+    layoutBindings[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    layoutBindings[1].descriptorCount = 1;
+    layoutBindings[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+    layoutBindings[1].pImmutableSamplers = nullptr;
+    
+    // Binding 2: Lighting uniform buffer (for fragment shader)
+    layoutBindings[2].binding = 2;
+    layoutBindings[2].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    layoutBindings[2].descriptorCount = 1;
+    layoutBindings[2].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+    layoutBindings[2].pImmutableSamplers = nullptr;
+    
     VkDescriptorSetLayoutCreateInfo descLayoutInfo = {
         VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
         nullptr,
         0,
-        1,
-        &layoutBinding
+        3,  // Three bindings now
+        layoutBindings
     };
     err = mDeviceFunctions->vkCreateDescriptorSetLayout(logicalDevice, &descLayoutInfo, nullptr, &mDescriptorSetLayout);
     if (err != VK_SUCCESS)
@@ -790,64 +942,101 @@ void RenderWindow::initResources()
         if (err != VK_SUCCESS)
             qFatal("Failed to allocate ground descriptor set: %d", err);
 
-        VkWriteDescriptorSet descWrite;
-        memset(&descWrite, 0, sizeof(descWrite));
-        descWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        descWrite.dstSet = mDescriptorSet[i];
-        descWrite.descriptorCount = 1;
-        descWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        descWrite.pBufferInfo = &mUniformBufferInfo[i];
-        mDeviceFunctions->vkUpdateDescriptorSets(logicalDevice, 1, &descWrite, 0, nullptr);
+        // Create texture sampler descriptor for all descriptor sets
+        VkDescriptorImageInfo imageInfo = {};
+        imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        imageInfo.imageView = mTextureImageView;
+        imageInfo.sampler = mTextureSampler;
+
+        // We need three write descriptor sets: one for uniform buffer, one for texture sampler, one for lighting
+        VkWriteDescriptorSet writeDescSets[3] = {};
+        
+        // First write: Uniform buffer (MVP matrix)
+        writeDescSets[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        writeDescSets[0].dstSet = mDescriptorSet[i];
+        writeDescSets[0].dstBinding = 0;
+        writeDescSets[0].descriptorCount = 1;
+        writeDescSets[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        writeDescSets[0].pBufferInfo = &mUniformBufferInfo[i];
+        
+        // Second write: Texture sampler
+        writeDescSets[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        writeDescSets[1].dstSet = mDescriptorSet[i];
+        writeDescSets[1].dstBinding = 1;
+        writeDescSets[1].descriptorCount = 1;
+        writeDescSets[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        writeDescSets[1].pImageInfo = &imageInfo;
+        
+        // Third write: Lighting uniform buffer
+        writeDescSets[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        writeDescSets[2].dstSet = mDescriptorSet[i];
+        writeDescSets[2].dstBinding = 2;
+        writeDescSets[2].descriptorCount = 1;
+        writeDescSets[2].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        writeDescSets[2].pBufferInfo = &mLightingBufferInfo[i];
+        
+        // Update all three descriptor writes
+        mDeviceFunctions->vkUpdateDescriptorSets(logicalDevice, 3, writeDescSets, 0, nullptr);
         
         // Player descriptor set 
         err = mDeviceFunctions->vkAllocateDescriptorSets(logicalDevice, &descSetAllocInfo, &mPlayerDescriptorSet[i]);
         if (err != VK_SUCCESS)
             qFatal("Failed to allocate player descriptor set: %d", err);
             
-        // Update player descriptor set
-        descWrite.dstSet = mPlayerDescriptorSet[i];
-        descWrite.pBufferInfo = &mPlayerUniformBufferInfo[i];
-        mDeviceFunctions->vkUpdateDescriptorSets(logicalDevice, 1, &descWrite, 0, nullptr);
+        // Update player descriptor set with uniform buffer, texture, and lighting
+        writeDescSets[0].dstSet = mPlayerDescriptorSet[i];
+        writeDescSets[0].pBufferInfo = &mPlayerUniformBufferInfo[i];
+        writeDescSets[1].dstSet = mPlayerDescriptorSet[i];
+        writeDescSets[2].dstSet = mPlayerDescriptorSet[i];
+        mDeviceFunctions->vkUpdateDescriptorSets(logicalDevice, 3, writeDescSets, 0, nullptr);
         
         // Collectible descriptor set 
         err = mDeviceFunctions->vkAllocateDescriptorSets(logicalDevice, &descSetAllocInfo, &mCollectibleDescriptorSet[i]);
         if (err != VK_SUCCESS)
             qFatal("Failed to allocate collectible descriptor set: %d", err);
             
-        // Update collectible descriptor set
-        descWrite.dstSet = mCollectibleDescriptorSet[i];
-        descWrite.pBufferInfo = &mCollectibleUniformBufferInfo[i];
-        mDeviceFunctions->vkUpdateDescriptorSets(logicalDevice, 1, &descWrite, 0, nullptr);
+        // Update collectible descriptor set with uniform, texture, and lighting
+        writeDescSets[0].dstSet = mCollectibleDescriptorSet[i];
+        writeDescSets[0].pBufferInfo = &mCollectibleUniformBufferInfo[i];
+        writeDescSets[1].dstSet = mCollectibleDescriptorSet[i];
+        writeDescSets[2].dstSet = mCollectibleDescriptorSet[i];
+        mDeviceFunctions->vkUpdateDescriptorSets(logicalDevice, 3, writeDescSets, 0, nullptr);
         
         // NPC 1 (Red) descriptor set 
         err = mDeviceFunctions->vkAllocateDescriptorSets(logicalDevice, &descSetAllocInfo, &mNPCDescriptorSet1[i]);
         if (err != VK_SUCCESS)
             qFatal("Failed to allocate NPC1 descriptor set: %d", err);
             
-        // Update NPC1 descriptor set
-        descWrite.dstSet = mNPCDescriptorSet1[i];
-        descWrite.pBufferInfo = &mNPCUniformBufferInfo1[i];
-        mDeviceFunctions->vkUpdateDescriptorSets(logicalDevice, 1, &descWrite, 0, nullptr);
+        // Update NPC1 descriptor set with uniform, texture, and lighting
+        writeDescSets[0].dstSet = mNPCDescriptorSet1[i];
+        writeDescSets[0].pBufferInfo = &mNPCUniformBufferInfo1[i];
+        writeDescSets[1].dstSet = mNPCDescriptorSet1[i]; 
+        writeDescSets[2].dstSet = mNPCDescriptorSet1[i];
+        mDeviceFunctions->vkUpdateDescriptorSets(logicalDevice, 3, writeDescSets, 0, nullptr);
         
         // NPC 2 (Green) descriptor set 
         err = mDeviceFunctions->vkAllocateDescriptorSets(logicalDevice, &descSetAllocInfo, &mNPCDescriptorSet2[i]);
         if (err != VK_SUCCESS)
             qFatal("Failed to allocate NPC2 descriptor set: %d", err);
             
-        // Update NPC2 descriptor set
-        descWrite.dstSet = mNPCDescriptorSet2[i];
-        descWrite.pBufferInfo = &mNPCUniformBufferInfo2[i];
-        mDeviceFunctions->vkUpdateDescriptorSets(logicalDevice, 1, &descWrite, 0, nullptr);
+        // Update NPC2 descriptor set with uniform, texture, and lighting
+        writeDescSets[0].dstSet = mNPCDescriptorSet2[i];
+        writeDescSets[0].pBufferInfo = &mNPCUniformBufferInfo2[i];
+        writeDescSets[1].dstSet = mNPCDescriptorSet2[i];
+        writeDescSets[2].dstSet = mNPCDescriptorSet2[i];
+        mDeviceFunctions->vkUpdateDescriptorSets(logicalDevice, 3, writeDescSets, 0, nullptr);
         
         // NPC 3 (Blue) descriptor set 
         err = mDeviceFunctions->vkAllocateDescriptorSets(logicalDevice, &descSetAllocInfo, &mNPCDescriptorSet3[i]);
         if (err != VK_SUCCESS)
             qFatal("Failed to allocate NPC3 descriptor set: %d", err);
             
-        // Update NPC3 descriptor set
-        descWrite.dstSet = mNPCDescriptorSet3[i];
-        descWrite.pBufferInfo = &mNPCUniformBufferInfo3[i];
-        mDeviceFunctions->vkUpdateDescriptorSets(logicalDevice, 1, &descWrite, 0, nullptr);
+        // Update NPC3 descriptor set with uniform, texture, and lighting
+        writeDescSets[0].dstSet = mNPCDescriptorSet3[i];
+        writeDescSets[0].pBufferInfo = &mNPCUniformBufferInfo3[i];
+        writeDescSets[1].dstSet = mNPCDescriptorSet3[i];
+        writeDescSets[2].dstSet = mNPCDescriptorSet3[i];
+        mDeviceFunctions->vkUpdateDescriptorSets(logicalDevice, 3, writeDescSets, 0, nullptr);
     }
 
     // Pipeline cache
@@ -1343,19 +1532,40 @@ void RenderWindow::initResources()
         if (err != VK_SUCCESS)
             qFatal("Failed to allocate house descriptor set: %d", err);
 
-        VkWriteDescriptorSet writeDescSet = {
-            VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-            nullptr,
-            mHouseDescriptorSet[i],
-            0, // binding
-            0, // arrayElement
-            1, // descriptorCount
-            VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            nullptr,
-            &mHouseUniformBufferInfo[i],
-            nullptr
-        };
-        mDeviceFunctions->vkUpdateDescriptorSets(logicalDevice, 1, &writeDescSet, 0, nullptr);
+        // Create texture sampler descriptor
+        VkDescriptorImageInfo imageInfo = {};
+        imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        imageInfo.imageView = mTextureImageView;
+        imageInfo.sampler = mTextureSampler;
+
+        // Three write descriptor sets: one for uniform buffer, one for texture sampler, one for lighting
+        VkWriteDescriptorSet writeDescSets[3] = {};
+        
+        // First write: Uniform buffer
+        writeDescSets[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        writeDescSets[0].dstSet = mHouseDescriptorSet[i];
+        writeDescSets[0].dstBinding = 0;
+        writeDescSets[0].descriptorCount = 1;
+        writeDescSets[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        writeDescSets[0].pBufferInfo = &mHouseUniformBufferInfo[i];
+        
+        // Second write: Texture sampler
+        writeDescSets[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        writeDescSets[1].dstSet = mHouseDescriptorSet[i];
+        writeDescSets[1].dstBinding = 1;
+        writeDescSets[1].descriptorCount = 1;
+        writeDescSets[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        writeDescSets[1].pImageInfo = &imageInfo;
+        
+        // Third write: Lighting uniform buffer
+        writeDescSets[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        writeDescSets[2].dstSet = mHouseDescriptorSet[i];
+        writeDescSets[2].dstBinding = 2;
+        writeDescSets[2].descriptorCount = 1;
+        writeDescSets[2].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        writeDescSets[2].pBufferInfo = &mLightingBufferInfo[i];
+        
+        mDeviceFunctions->vkUpdateDescriptorSets(logicalDevice, 3, writeDescSets, 0, nullptr);
     }
     
     // Create descriptor sets for the indoor scene
@@ -1364,19 +1574,41 @@ void RenderWindow::initResources()
         if (err != VK_SUCCESS)
             qFatal("Failed to allocate indoor descriptor set: %d", err);
 
-        VkWriteDescriptorSet writeDescSet = {
-            VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-            nullptr,
-            mIndoorDescriptorSet[i],
-            0, // binding
-            0, // arrayElement
-            1, // descriptorCount
-            VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            nullptr,
-            &mIndoorUniformBufferInfo[i],
-            nullptr
-        };
-        mDeviceFunctions->vkUpdateDescriptorSets(logicalDevice, 1, &writeDescSet, 0, nullptr);
+        // Create texture sampler descriptor
+        VkDescriptorImageInfo imageInfo = {};
+        imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        imageInfo.imageView = mTextureImageView;
+        imageInfo.sampler = mTextureSampler;
+
+        // Three descriptor writes: one for uniform buffer, one for texture sampler, one for lighting
+        VkWriteDescriptorSet descriptorWrites[3] = {};
+        
+        // Uniform buffer descriptor
+        descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptorWrites[0].dstSet = mIndoorDescriptorSet[i];
+        descriptorWrites[0].dstBinding = 0;
+        descriptorWrites[0].descriptorCount = 1;
+        descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        descriptorWrites[0].pBufferInfo = &mIndoorUniformBufferInfo[i];
+        
+        // Texture sampler descriptor
+        descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptorWrites[1].dstSet = mIndoorDescriptorSet[i];
+        descriptorWrites[1].dstBinding = 1;
+        descriptorWrites[1].descriptorCount = 1;
+        descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        descriptorWrites[1].pImageInfo = &imageInfo;
+        
+        // Lighting uniform buffer descriptor
+        descriptorWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptorWrites[2].dstSet = mIndoorDescriptorSet[i];
+        descriptorWrites[2].dstBinding = 2;
+        descriptorWrites[2].descriptorCount = 1;
+        descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        descriptorWrites[2].pBufferInfo = &mLightingBufferInfo[i];
+        
+        // Update the descriptor sets with all three writes
+        mDeviceFunctions->vkUpdateDescriptorSets(logicalDevice, 3, descriptorWrites, 0, nullptr);
     }
 
     qDebug("\n ***************************** initResources finished ******************************************* \n");
@@ -1391,7 +1623,22 @@ void RenderWindow::initResources()
     // Initialize default scene state
     mCurrentScene = 1; // Start in outdoor scene
     
+    // Initialize lighting data
+    mLightingData.lightPosition[0] = 2.0f;
+    mLightingData.lightPosition[1] = 2.0f;
+    mLightingData.lightPosition[2] = 2.0f;
+    mLightingData.viewPosition[0] = 0.0f;
+    mLightingData.viewPosition[1] = 0.0f;
+    mLightingData.viewPosition[2] = 5.0f;
+    mLightingData.lightColor[0] = 1.0f;
+    mLightingData.lightColor[1] = 1.0f;
+    mLightingData.lightColor[2] = 1.0f;
+    mLightingData.ambientStrength = 0.2f;
+    mLightingData.specularStrength = 0.5f;
+    mLightingData.shininess = 32.0f;
     
+    // Initialize resources that need to be regenerated on window resize
+    initSwapChainResources();
 }
 
 void RenderWindow::createIndoorSceneResources()
@@ -1401,57 +1648,57 @@ void RenderWindow::createIndoorSceneResources()
     
     // Indoor room vertices (simple cube room)
     static const float indoorWallsVertexData[] = {
-        // Position            // Color (white walls with blue accent)
+        // Position            // Color (white walls with blue accent)  // Texture coords
         // Back wall (negative Z)
-        -5.0f, 0.0f, -5.0f,    0.9f, 0.9f, 1.0f,  // Bottom-left
-        5.0f, 0.0f, -5.0f,     0.9f, 0.9f, 1.0f,  // Bottom-right
-        5.0f, 5.0f, -5.0f,     0.9f, 0.9f, 1.0f,  // Top-right
-        -5.0f, 5.0f, -5.0f,    0.9f, 0.9f, 1.0f,  // Top-left
+        -5.0f, 0.0f, -5.0f,    0.9f, 0.9f, 1.0f,   0.0f, 0.0f,  // Bottom-left
+        5.0f, 0.0f, -5.0f,     0.9f, 0.9f, 1.0f,   1.0f, 0.0f,  // Bottom-right
+        5.0f, 5.0f, -5.0f,     0.9f, 0.9f, 1.0f,   1.0f, 1.0f,  // Top-right
+        -5.0f, 5.0f, -5.0f,    0.9f, 0.9f, 1.0f,   0.0f, 1.0f,  // Top-left
         
         // Front wall (positive Z) with door cutout
-        -5.0f, 0.0f, 5.0f,     0.9f, 0.9f, 1.0f,  // Bottom-left
-        -1.5f, 0.0f, 5.0f,     0.9f, 0.9f, 1.0f,  // Door left bottom
-        -1.5f, 3.0f, 5.0f,     0.9f, 0.9f, 1.0f,  // Door left top
-        -5.0f, 5.0f, 5.0f,     0.9f, 0.9f, 1.0f,  // Top-left
+        -5.0f, 0.0f, 5.0f,     0.9f, 0.9f, 1.0f,   0.0f, 0.0f,  // Bottom-left
+        -1.5f, 0.0f, 5.0f,     0.9f, 0.9f, 1.0f,   0.3f, 0.0f,  // Door left bottom
+        -1.5f, 3.0f, 5.0f,     0.9f, 0.9f, 1.0f,   0.3f, 0.6f,  // Door left top
+        -5.0f, 5.0f, 5.0f,     0.9f, 0.9f, 1.0f,   0.0f, 1.0f,  // Top-left
         
         // Front wall right of door
-        1.5f, 0.0f, 5.0f,      0.9f, 0.9f, 1.0f,  // Door right bottom
-        5.0f, 0.0f, 5.0f,      0.9f, 0.9f, 1.0f,  // Bottom-right
-        5.0f, 5.0f, 5.0f,      0.9f, 0.9f, 1.0f,  // Top-right
-        1.5f, 3.0f, 5.0f,      0.9f, 0.9f, 1.0f,  // Door right top
+        1.5f, 0.0f, 5.0f,      0.9f, 0.9f, 1.0f,   0.7f, 0.0f,  // Door right bottom
+        5.0f, 0.0f, 5.0f,      0.9f, 0.9f, 1.0f,   1.0f, 0.0f,  // Bottom-right
+        5.0f, 5.0f, 5.0f,      0.9f, 0.9f, 1.0f,   1.0f, 1.0f,  // Top-right
+        1.5f, 3.0f, 5.0f,      0.9f, 0.9f, 1.0f,   0.7f, 0.6f,  // Door right top
         
         // Front wall above door
-        -1.5f, 3.0f, 5.0f,     0.9f, 0.9f, 1.0f,  // Door left top
-        1.5f, 3.0f, 5.0f,      0.9f, 0.9f, 1.0f,  // Door right top
-        1.5f, 5.0f, 5.0f,      0.9f, 0.9f, 1.0f,  // Top-right of door
-        -1.5f, 5.0f, 5.0f,     0.9f, 0.9f, 1.0f,  // Top-left of door
+        -1.5f, 3.0f, 5.0f,     0.9f, 0.9f, 1.0f,   0.3f, 0.6f,  // Door left top
+        1.5f, 3.0f, 5.0f,      0.9f, 0.9f, 1.0f,   0.7f, 0.6f,  // Door right top
+        1.5f, 5.0f, 5.0f,      0.9f, 0.9f, 1.0f,   0.7f, 1.0f,  // Top-right of door
+        -1.5f, 5.0f, 5.0f,     0.9f, 0.9f, 1.0f,   0.3f, 1.0f,  // Top-left of door
         
         // Left wall (negative X)
-        -5.0f, 0.0f, -5.0f,    0.8f, 0.8f, 1.0f,  // Back bottom
-        -5.0f, 0.0f, 5.0f,     0.8f, 0.8f, 1.0f,  // Front bottom
-        -5.0f, 5.0f, 5.0f,     0.8f, 0.8f, 1.0f,  // Front top
-        -5.0f, 5.0f, -5.0f,    0.8f, 0.8f, 1.0f,  // Back top
+        -5.0f, 0.0f, -5.0f,    0.8f, 0.8f, 1.0f,   0.0f, 0.0f,  // Back bottom
+        -5.0f, 0.0f, 5.0f,     0.8f, 0.8f, 1.0f,   1.0f, 0.0f,  // Front bottom
+        -5.0f, 5.0f, 5.0f,     0.8f, 0.8f, 1.0f,   1.0f, 1.0f,  // Front top
+        -5.0f, 5.0f, -5.0f,    0.8f, 0.8f, 1.0f,   0.0f, 1.0f,  // Back top
         
         // Right wall (positive X)
-        5.0f, 0.0f, -5.0f,     0.8f, 0.8f, 1.0f,  // Back bottom
-        5.0f, 0.0f, 5.0f,      0.8f, 0.8f, 1.0f,  // Front bottom
-        5.0f, 5.0f, 5.0f,      0.8f, 0.8f, 1.0f,  // Front top
-        5.0f, 5.0f, -5.0f,     0.8f, 0.8f, 1.0f,  // Back top
+        5.0f, 0.0f, -5.0f,     0.8f, 0.8f, 1.0f,   1.0f, 0.0f,  // Back bottom
+        5.0f, 0.0f, 5.0f,      0.8f, 0.8f, 1.0f,   0.0f, 0.0f,  // Front bottom
+        5.0f, 5.0f, 5.0f,      0.8f, 0.8f, 1.0f,   0.0f, 1.0f,  // Front top
+        5.0f, 5.0f, -5.0f,     0.8f, 0.8f, 1.0f,   1.0f, 1.0f,  // Back top
         
         // Ceiling (positive Y)
-        -5.0f, 5.0f, -5.0f,    0.7f, 0.7f, 1.0f,  // Back-left
-        5.0f, 5.0f, -5.0f,     0.7f, 0.7f, 1.0f,  // Back-right
-        5.0f, 5.0f, 5.0f,      0.7f, 0.7f, 1.0f,  // Front-right
-        -5.0f, 5.0f, 5.0f,     0.7f, 0.7f, 1.0f,  // Front-left
+        -5.0f, 5.0f, -5.0f,    0.7f, 0.7f, 1.0f,   0.0f, 0.0f,  // Back-left
+        5.0f, 5.0f, -5.0f,     0.7f, 0.7f, 1.0f,   1.0f, 0.0f,  // Back-right
+        5.0f, 5.0f, 5.0f,      0.7f, 0.7f, 1.0f,   1.0f, 1.0f,  // Front-right
+        -5.0f, 5.0f, 5.0f,     0.7f, 0.7f, 1.0f,   0.0f, 1.0f,  // Front-left
     };
     
     // Exit door vertices
     static const float exitDoorVertexData[] = {
-        // Position            // Color (wooden door)
-        -1.5f, 0.0f, 5.0f,     0.6f, 0.4f, 0.2f,  // Bottom-left
-        1.5f, 0.0f, 5.0f,      0.6f, 0.4f, 0.2f,  // Bottom-right
-        1.5f, 3.0f, 5.0f,      0.6f, 0.4f, 0.2f,  // Top-right
-        -1.5f, 3.0f, 5.0f,     0.6f, 0.4f, 0.2f,  // Top-left
+        // Position            // Color (wooden door)    // Texture coords
+        -1.5f, 0.0f, 5.0f,     0.6f, 0.4f, 0.2f,   0.0f, 0.0f,  // Bottom-left
+        1.5f, 0.0f, 5.0f,      0.6f, 0.4f, 0.2f,   1.0f, 0.0f,  // Bottom-right
+        1.5f, 3.0f, 5.0f,      0.6f, 0.4f, 0.2f,   1.0f, 1.0f,  // Top-right
+        -1.5f, 3.0f, 5.0f,     0.6f, 0.4f, 0.2f,   0.0f, 1.0f,  // Top-left
     };
     
     // Create indoor walls buffer
@@ -1535,14 +1782,41 @@ void RenderWindow::createIndoorSceneResources()
             qFatal("Failed to allocate indoor descriptor set: %d", err);
         }
         
-        // Update indoor descriptor set
-        VkWriteDescriptorSet descWrite = {};
-        descWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        descWrite.dstSet = mIndoorDescriptorSet[i];
-        descWrite.descriptorCount = 1;
-        descWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        descWrite.pBufferInfo = &mIndoorUniformBufferInfo[i];
-        mDeviceFunctions->vkUpdateDescriptorSets(device, 1, &descWrite, 0, nullptr);
+        // Create texture sampler descriptor info
+        VkDescriptorImageInfo imageInfo = {};
+        imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        imageInfo.imageView = mTextureImageView;
+        imageInfo.sampler = mTextureSampler;
+
+        // Three descriptor writes: one for uniform buffer, one for texture sampler, one for lighting
+        VkWriteDescriptorSet descriptorWrites[3] = {};
+        
+        // Uniform buffer descriptor
+        descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptorWrites[0].dstSet = mIndoorDescriptorSet[i];
+        descriptorWrites[0].dstBinding = 0;
+        descriptorWrites[0].descriptorCount = 1;
+        descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        descriptorWrites[0].pBufferInfo = &mIndoorUniformBufferInfo[i];
+        
+        // Texture sampler descriptor
+        descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptorWrites[1].dstSet = mIndoorDescriptorSet[i];
+        descriptorWrites[1].dstBinding = 1;
+        descriptorWrites[1].descriptorCount = 1;
+        descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        descriptorWrites[1].pImageInfo = &imageInfo;
+        
+        // Lighting uniform buffer descriptor
+        descriptorWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptorWrites[2].dstSet = mIndoorDescriptorSet[i];
+        descriptorWrites[2].dstBinding = 2;
+        descriptorWrites[2].descriptorCount = 1;
+        descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        descriptorWrites[2].pBufferInfo = &mLightingBufferInfo[i];
+        
+        // Update the descriptor sets with all three writes
+        mDeviceFunctions->vkUpdateDescriptorSets(device, 3, descriptorWrites, 0, nullptr);
     }
     
     qDebug() << "Initialized indoor scene resources successfully";
@@ -1599,7 +1873,7 @@ void RenderWindow::drawOutdoorScene(VkDevice device, VkCommandBuffer cb, quint8*
     qDebug() << "Starting to render" << mCollectibles.size() << "collectibles";
     
     for (int i = 0; i < mCollectibles.size(); ++i) {
-        if (!mCollectibles[i].collected) {
+        if (!mCollectibles[i].isCollected) {
             qDebug() << "Rendering collectible" << i << "at position" << mCollectibles[i].position;
             
             // Create matrix for this collectible
@@ -1842,7 +2116,7 @@ void RenderWindow::drawIndoorScene(VkDevice device, VkCommandBuffer cb, quint8* 
     qDebug() << "Drew indoor floor";
     
     // Draw indoor collectible if not collected
-    if (!mIndoorCollectible.collected) {
+    if (!mIndoorCollectible.isCollected) {
         // Create matrix for this collectible
         QMatrix4x4 collectibleMatrix;
         collectibleMatrix.setToIdentity();
@@ -2105,6 +2379,15 @@ void RenderWindow::releaseSwapChainResources()
     // Nothing specific to release in swap chain resources
     // This method is called when the swap chain is being recreated,
     // such as when the window is resized
+    
+    if (mLightingBuffer != VK_NULL_HANDLE) {
+        mDeviceFunctions->vkDestroyBuffer(mWindow->device(), mLightingBuffer, nullptr);
+        mLightingBuffer = VK_NULL_HANDLE;
+    }
+    if (mLightingBufferMemory != VK_NULL_HANDLE) {
+        mDeviceFunctions->vkFreeMemory(mWindow->device(), mLightingBufferMemory, nullptr);
+        mLightingBufferMemory = VK_NULL_HANDLE;
+    }
 }
 
 void RenderWindow::releaseResources()
@@ -2252,6 +2535,17 @@ void RenderWindow::releaseResources()
         mHouseRoofBufferMemory = VK_NULL_HANDLE;
     }
 
+    // Clean up lighting buffer
+    if (mLightingBuffer != VK_NULL_HANDLE) {
+        mDeviceFunctions->vkDestroyBuffer(device, mLightingBuffer, nullptr);
+        mLightingBuffer = VK_NULL_HANDLE;
+    }
+
+    if (mLightingBufferMemory != VK_NULL_HANDLE) {
+        mDeviceFunctions->vkFreeMemory(device, mLightingBufferMemory, nullptr);
+        mLightingBufferMemory = VK_NULL_HANDLE;
+    }
+
     // Free house descriptor sets
     if (mHouseDescriptorSet[0]) {
         mDeviceFunctions->vkFreeDescriptorSets(device, mDescriptorPool, 1, mHouseDescriptorSet);
@@ -2277,7 +2571,7 @@ void RenderWindow::initializeCollectibles()
     mCollectibles.append(Collectible(QVector3D(6.0f, 1.5f, 6.0f)));     // Bottom right
 
     // Reset the indoor collectible to not collected
-    mIndoorCollectible.collected = false;
+    mIndoorCollectible.isCollected = false;
 
     qDebug() << "Initialized 6 outdoor and 1 indoor collectibles";
 }
@@ -2288,7 +2582,7 @@ void RenderWindow::checkCollectibleCollisions()
     bool collectedAny = false;
     
     for (int i = 0; i < mCollectibles.size(); ++i) {
-        if (!mCollectibles[i].collected) {
+        if (!mCollectibles[i].isCollected) {
             // For collision, only check X and Z coordinates since Y is different by design
             QVector3D playerXZ(mPlayerPosition.x(), 0.0f, mPlayerPosition.z());
             QVector3D collectibleXZ(mCollectibles[i].position.x(), 0.0f, mCollectibles[i].position.z());
@@ -2297,7 +2591,7 @@ void RenderWindow::checkCollectibleCollisions()
             
             if (distance < collectionDistance) {
                 // Collect the item
-                mCollectibles[i].collected = true;
+                mCollectibles[i].isCollected = true;
                 mCollectedCount++;
                 collectedAny = true;
                 qDebug() << "COLLECTED: item at position" << mCollectibles[i].position << "!"
@@ -2556,21 +2850,21 @@ void RenderWindow::updateDoorState(bool open)
     if (mDoorOpen == open) {
         return; // No change needed
     }
-    
+     
     mDoorOpen = open;
-    
+     
     // Update door buffer with appropriate vertex data
     VkDevice device = mWindow->device();
-    
+     
     // Map the door buffer memory
     void* doorData;
     VkResult err = mDeviceFunctions->vkMapMemory(device, mHouseDoorBufferMemory, 0, 
-                                                sizeof(houseDoorVertexData), 0, &doorData);
+                                               sizeof(houseDoorVertexData), 0, &doorData);
     if (err != VK_SUCCESS) {
         qDebug() << "Failed to map door memory! Error:" << err;
         return;
     }
-    
+     
     // Copy the appropriate vertex data based on door state
     if (mDoorOpen) {
         memcpy(doorData, houseDoorOpenVertexData, sizeof(houseDoorOpenVertexData));
@@ -2579,10 +2873,10 @@ void RenderWindow::updateDoorState(bool open)
         memcpy(doorData, houseDoorVertexData, sizeof(houseDoorVertexData));
         qDebug() << "Door closed - updated vertex data";
     }
-    
+     
     // Unmap the memory
     mDeviceFunctions->vkUnmapMemory(device, mHouseDoorBufferMemory);
-    
+     
     // Request a redraw to show the updated door state
     if (mWindow) {
         mWindow->requestUpdate();
@@ -2623,7 +2917,7 @@ void RenderWindow::checkIndoorCollectibleCollision()
     }
     
     // Skip if already collected
-    if (mIndoorCollectible.collected) {
+    if (mIndoorCollectible.isCollected) {
         return;
     }
     
@@ -2638,7 +2932,7 @@ void RenderWindow::checkIndoorCollectibleCollision()
     
     if (distance < COLLECT_RADIUS) {
         // Mark as collected
-        mIndoorCollectible.collected = true;
+        mIndoorCollectible.isCollected = true;
         
         // Increment count (using the same counter as outdoor collectibles)
         mCollectedCount++;
@@ -2685,6 +2979,304 @@ void RenderWindow::checkGameWinCondition()
             qDebug() << "ERROR: Could not cast to VulkanWindow!";
         }
     }
+}
+
+// Create a default white texture when no texture is loaded
+void RenderWindow::createDefaultTexture(VkDevice device)
+{
+    // Create a simple 2x2 white texture
+    const uint32_t texWidth = 2;
+    const uint32_t texHeight = 2;
+    const VkDeviceSize imageSize = texWidth * texHeight * 4; // RGBA
+    
+    // Create white texture data (RGBA)
+    unsigned char* texData = new unsigned char[imageSize];
+    for (uint32_t i = 0; i < imageSize; i += 4) {
+        texData[i] = 255;     // R
+        texData[i + 1] = 255; // G
+        texData[i + 2] = 255; // B
+        texData[i + 3] = 255; // A
+    }
+    
+    // Create staging buffer
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
+    
+    VkBufferCreateInfo bufferInfo = {};
+    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    bufferInfo.size = imageSize;
+    bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    
+    VkResult err = mDeviceFunctions->vkCreateBuffer(device, &bufferInfo, nullptr, &stagingBuffer);
+    if (err != VK_SUCCESS)
+        qFatal("Failed to create staging buffer: %d", err);
+    
+    VkMemoryRequirements memRequirements;
+    mDeviceFunctions->vkGetBufferMemoryRequirements(device, stagingBuffer, &memRequirements);
+    
+    // Allocate memory for staging buffer with HOST_VISIBLE for CPU access
+    VkMemoryAllocateInfo allocInfo = {};
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;
+    
+    VkPhysicalDeviceMemoryProperties textureMemProperties;
+    mWindow->vulkanInstance()->functions()->vkGetPhysicalDeviceMemoryProperties(mWindow->physicalDevice(), &textureMemProperties);
+    
+    // Use HOST_VISIBLE memory for staging buffer so we can map it
+    allocInfo.memoryTypeIndex = getMemoryTypeIndex(
+        textureMemProperties,
+        memRequirements.memoryTypeBits,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+    );
+    
+    err = mDeviceFunctions->vkAllocateMemory(device, &allocInfo, nullptr, &stagingBufferMemory);
+    if (err != VK_SUCCESS)
+        qFatal("Failed to allocate staging buffer memory: %d", err);
+    
+    err = mDeviceFunctions->vkBindBufferMemory(device, stagingBuffer, stagingBufferMemory, 0);
+    if (err != VK_SUCCESS)
+        qFatal("Failed to bind staging buffer memory: %d", err);
+    
+    // Copy data to staging buffer using mapped memory
+    void* data;
+    err = mDeviceFunctions->vkMapMemory(device, stagingBufferMemory, 0, imageSize, 0, &data);
+    if (err != VK_SUCCESS)
+        qFatal("Failed to map memory: %d", err);
+    
+    memcpy(data, texData, static_cast<size_t>(imageSize));
+    mDeviceFunctions->vkUnmapMemory(device, stagingBufferMemory);
+    
+    delete[] texData;
+    
+    // Create the texture image
+    VkImageCreateInfo imageInfo = {};
+    imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+    imageInfo.imageType = VK_IMAGE_TYPE_2D;
+    imageInfo.extent.width = texWidth;
+    imageInfo.extent.height = texHeight;
+    imageInfo.extent.depth = 1;
+    imageInfo.mipLevels = 1;
+    imageInfo.arrayLayers = 1;
+    imageInfo.format = VK_FORMAT_R8G8B8A8_UNORM;
+    imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+    imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+    imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+    
+    err = mDeviceFunctions->vkCreateImage(device, &imageInfo, nullptr, &mTextureImage);
+    if (err != VK_SUCCESS)
+        qFatal("Failed to create texture image: %d", err);
+    
+    // Allocate memory for texture image
+    VkMemoryRequirements memReq;
+    mDeviceFunctions->vkGetImageMemoryRequirements(device, mTextureImage, &memReq);
+    
+    VkMemoryAllocateInfo memAllocInfo = {};
+    memAllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    memAllocInfo.allocationSize = memReq.size;
+    
+    VkPhysicalDeviceMemoryProperties imageMemProperties;
+    mWindow->vulkanInstance()->functions()->vkGetPhysicalDeviceMemoryProperties(mWindow->physicalDevice(), &imageMemProperties);
+    
+    // Always use device-local memory for the final texture image since we'll copy to it
+    memAllocInfo.memoryTypeIndex = getMemoryTypeIndex(
+        imageMemProperties,
+        memReq.memoryTypeBits,
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT // Device-local is better for GPU performance
+    );
+    
+    err = mDeviceFunctions->vkAllocateMemory(device, &memAllocInfo, nullptr, &mTextureImageMemory);
+    if (err != VK_SUCCESS)
+        qFatal("Failed to allocate texture image memory: %d", err);
+    
+    err = mDeviceFunctions->vkBindImageMemory(device, mTextureImage, mTextureImageMemory, 0);
+    if (err != VK_SUCCESS)
+        qFatal("Failed to bind texture image memory: %d", err);
+    
+    // Use our custom command buffer for one-time operations
+    VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+    
+    VkImageMemoryBarrier barrier = {};
+    barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.image = mTextureImage;
+    barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    barrier.subresourceRange.baseMipLevel = 0;
+    barrier.subresourceRange.levelCount = 1;
+    barrier.subresourceRange.baseArrayLayer = 0;
+    barrier.subresourceRange.layerCount = 1;
+    barrier.srcAccessMask = 0;
+    barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+    
+    mDeviceFunctions->vkCmdPipelineBarrier(
+        commandBuffer,
+        VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+        VK_PIPELINE_STAGE_TRANSFER_BIT,
+        0,
+        0, nullptr,
+        0, nullptr,
+        1, &barrier
+    );
+    
+    // Copy buffer to image
+    VkBufferImageCopy region = {};
+    region.bufferOffset = 0;
+    region.bufferRowLength = 0;
+    region.bufferImageHeight = 0;
+    region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    region.imageSubresource.mipLevel = 0;
+    region.imageSubresource.baseArrayLayer = 0;
+    region.imageSubresource.layerCount = 1;
+    region.imageOffset = { 0, 0, 0 };
+    region.imageExtent = { texWidth, texHeight, 1 };
+    
+    mDeviceFunctions->vkCmdCopyBufferToImage(
+        commandBuffer,
+        stagingBuffer,
+        mTextureImage,
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        1,
+        &region
+    );
+    
+    // Transition image layout to shader read only optimal
+    barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+    barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+    barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+    
+    mDeviceFunctions->vkCmdPipelineBarrier(
+        commandBuffer,
+        VK_PIPELINE_STAGE_TRANSFER_BIT,
+        VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+        0,
+        0, nullptr,
+        0, nullptr,
+        1, &barrier
+    );
+    
+    // Submit and clean up the command buffer
+    endSingleTimeCommands(commandBuffer);
+    
+    // Create texture image view
+    VkImageViewCreateInfo viewInfo = {};
+    viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    viewInfo.image = mTextureImage;
+    viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    viewInfo.format = VK_FORMAT_R8G8B8A8_UNORM;
+    viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    viewInfo.subresourceRange.baseMipLevel = 0;
+    viewInfo.subresourceRange.levelCount = 1;
+    viewInfo.subresourceRange.baseArrayLayer = 0;
+    viewInfo.subresourceRange.layerCount = 1;
+    
+    err = mDeviceFunctions->vkCreateImageView(device, &viewInfo, nullptr, &mTextureImageView);
+    if (err != VK_SUCCESS)
+        qFatal("Failed to create texture image view: %d", err);
+    
+    // Create texture sampler
+    VkSamplerCreateInfo samplerInfo = {};
+    samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+    samplerInfo.magFilter = VK_FILTER_LINEAR;
+    samplerInfo.minFilter = VK_FILTER_LINEAR;
+    samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.anisotropyEnable = VK_FALSE;
+    samplerInfo.maxAnisotropy = 1.0f;
+    samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+    samplerInfo.unnormalizedCoordinates = VK_FALSE;
+    samplerInfo.compareEnable = VK_FALSE;
+    samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+    samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+    samplerInfo.mipLodBias = 0.0f;
+    samplerInfo.minLod = 0.0f;
+    samplerInfo.maxLod = 0.0f;
+    
+    err = mDeviceFunctions->vkCreateSampler(device, &samplerInfo, nullptr, &mTextureSampler);
+    if (err != VK_SUCCESS)
+        qFatal("Failed to create texture sampler: %d", err);
+    
+    // Clean up staging resources
+    mDeviceFunctions->vkDestroyBuffer(device, stagingBuffer, nullptr);
+    mDeviceFunctions->vkFreeMemory(device, stagingBufferMemory, nullptr);
+}
+
+VkCommandBuffer RenderWindow::beginSingleTimeCommands() {
+    VkDevice device = mWindow->device();
+    
+    // Create a temporary command pool if it doesn't exist
+    if (mTempCommandPool == VK_NULL_HANDLE) {
+        VkCommandPoolCreateInfo poolInfo = {};
+        poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+        poolInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
+        poolInfo.queueFamilyIndex = mWindow->graphicsQueueFamilyIndex();
+        
+        VkResult err = mDeviceFunctions->vkCreateCommandPool(device, &poolInfo, nullptr, &mTempCommandPool);
+        if (err != VK_SUCCESS) {
+            qFatal("Failed to create command pool: %d", err);
+        }
+    }
+    
+    // Allocate command buffer
+    VkCommandBufferAllocateInfo allocInfo = {};
+    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    allocInfo.commandPool = mTempCommandPool;
+    allocInfo.commandBufferCount = 1;
+    
+    VkCommandBuffer commandBuffer;
+    VkResult err = mDeviceFunctions->vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer);
+    if (err != VK_SUCCESS) {
+        qFatal("Failed to allocate command buffer: %d", err);
+    }
+    
+    // Begin command buffer
+    VkCommandBufferBeginInfo beginInfo = {};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+    
+    err = mDeviceFunctions->vkBeginCommandBuffer(commandBuffer, &beginInfo);
+    if (err != VK_SUCCESS) {
+        qFatal("Failed to begin command buffer: %d", err);
+    }
+    
+    return commandBuffer;
+}
+
+void RenderWindow::endSingleTimeCommands(VkCommandBuffer commandBuffer) {
+    VkDevice device = mWindow->device();
+    
+    // End command buffer
+    VkResult err = mDeviceFunctions->vkEndCommandBuffer(commandBuffer);
+    if (err != VK_SUCCESS) {
+        qFatal("Failed to end command buffer: %d", err);
+    }
+    
+    // Submit command buffer
+    VkSubmitInfo submitInfo = {};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &commandBuffer;
+    
+    err = mDeviceFunctions->vkQueueSubmit(mWindow->graphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE);
+    if (err != VK_SUCCESS) {
+        qFatal("Failed to submit queue: %d", err);
+    }
+    
+    // Wait for the GPU to finish execution
+    err = mDeviceFunctions->vkQueueWaitIdle(mWindow->graphicsQueue());
+    if (err != VK_SUCCESS) {
+        qFatal("Failed to wait for queue idle: %d", err);
+    }
+    
+    // Free command buffer
+    mDeviceFunctions->vkFreeCommandBuffers(device, mTempCommandPool, 1, &commandBuffer);
 }
 
 
