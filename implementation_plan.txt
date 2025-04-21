@@ -1,0 +1,33 @@
+# Implementation Plan for Color-Only Ground Plane
+
+## Overview
+This implementation allows the ground plane object to be rendered with colors only, while other objects continue using textures. This meets the requirement from the project guide: "At least one of the objects must have a texture, while at least one of the objects should use only colors."
+
+## Files Created
+1. `noTexture.vert` - Vertex shader for color-only rendering
+2. `noTexture.frag` - Fragment shader for color-only rendering
+3. `noTexture_vert.spv` - Compiled vertex shader
+4. `noTexture_frag.spv` - Compiled fragment shader
+5. `RenderWindow_changes.txt` - Detailed code changes for RenderWindow.cpp
+
+## Changes Made
+1. Created a new fragment shader that doesn't use textures
+2. Created a matching vertex shader with the same input/output structure
+3. Compiled both shaders to SPIR-V format
+4. Updated vulkan.qrc to include the new shader files
+5. Provided detailed instructions for:
+   - Adding the necessary class members to RenderWindow.h
+   - Creating a dedicated pipeline for non-textured rendering
+   - Switching pipelines during scene rendering
+   - Proper resource cleanup
+
+## How to Apply the Changes
+1. Copy or create the new shader files
+2. Compile the shaders using glslangValidator (already done)
+3. Update vulkan.qrc (already done)
+4. Follow the instructions in RenderWindow_changes.txt to modify RenderWindow.cpp and RenderWindow.h
+
+## Technical Details
+The implementation creates a separate rendering pipeline that uses the same vertex layout but a different fragment shader that ignores texture sampling. This allows switching between textured and non-textured rendering during a frame.
+
+When rendering the ground plane, the code switches to the non-textured pipeline, renders the ground, then switches back to the textured pipeline for other objects. This approach maintains compatibility with the existing code structure while meeting the requirement of having both textured and non-textured objects in the scene. 

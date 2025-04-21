@@ -1246,7 +1246,61 @@ void RenderWindow::initResources()
 
     memcpy(playerData, playerVertexData, sizeof(playerVertexData));
     mDeviceFunctions->vkUnmapMemory(mWindow->device(), mPlayerBufferMemory);
+// Create another pipeline for objects without textures (ground plane)
+// Use the same pipeline layout and renderpass
+VkPipelineShaderStageCreateInfo noTextureStages[2] = {};
+noTextureStages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+noTextureStages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
+mNoTextureVertShader = createShader(QStringLiteral(":/noTexture_vert.spv"));
+if (mNoTextureVertShader == VK_NULL_HANDLE) {
+    qWarning() << "Failed to load no-texture vertex shader, falling back to regular rendering";
+    goto skip_no_texture_pipeline;
+}
+noTextureStages[0].module = mNoTextureVertShader;
+noTextureStages[0].pName = "main";
 
+noTextureStages[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+noTextureStages[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+mNoTextureFragShader = createShader(QStringLiteral(":/noTexture_frag.spv"));
+if (mNoTextureFragShader == VK_NULL_HANDLE) {
+    qWarning() << "Failed to load no-texture fragment shader, falling back to regular rendering";
+    if (mNoTextureVertShader != VK_NULL_HANDLE) {
+        mDeviceFunctions->vkDestroyShaderModule(logicalDevice, mNoTextureVertShader, nullptr);
+        mNoTextureVertShader = VK_NULL_HANDLE;
+    }
+    goto skip_no_texture_pipeline;
+}
+noTextureStages[1].module = mNoTextureFragShader;
+noTextureStages[1].pName = "main";
+
+VkGraphicsPipelineCreateInfo noTexturePipelineInfo = pipelineInfo; // Copy settings from the textured pipeline
+noTexturePipelineInfo.stageCount = 2;
+noTexturePipelineInfo.pStages = noTextureStages;
+
+err = mDeviceFunctions->vkCreateGraphicsPipelines(logicalDevice, mPipelineCache, 1, &noTexturePipelineInfo, nullptr, &mNoTexturePipeline);
+if (err != VK_SUCCESS) {
+    qWarning() << "Failed to create no-texture graphics pipeline:" << err << ", falling back to regular rendering";
+    if (mNoTextureVertShader != VK_NULL_HANDLE) {
+        mDeviceFunctions->vkDestroyShaderModule(logicalDevice, mNoTextureVertShader, nullptr);
+        mNoTextureVertShader = VK_NULL_HANDLE;
+    }
+    if (mNoTextureFragShader != VK_NULL_HANDLE) {
+        mDeviceFunctions->vkDestroyShaderModule(logicalDevice, mNoTextureFragShader, nullptr);
+        mNoTextureFragShader = VK_NULL_HANDLE;
+    }
+    goto skip_no_texture_pipeline;
+}
+
+if (mNoTextureVertShader) {
+    mDeviceFunctions->vkDestroyShaderModule(logicalDevice, mNoTextureVertShader, nullptr);
+    mNoTextureVertShader = VK_NULL_HANDLE;
+}
+if (mNoTextureFragShader) {
+    mDeviceFunctions->vkDestroyShaderModule(logicalDevice, mNoTextureFragShader, nullptr);
+    mNoTextureFragShader = VK_NULL_HANDLE;
+}
+
+skip_no_texture_pipeline:
     // Create and set up collectible buffer
     VkBufferCreateInfo collectibleBufferInfo = {};
     collectibleBufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -1836,26 +1890,41 @@ void RenderWindow::createIndoorSceneResources()
 
 void RenderWindow::drawOutdoorScene(VkDevice device, VkCommandBuffer cb, quint8* GPUmemPointer, VkResult& err)
 {
-    // Draw ground
-    QMatrix4x4 groundMatrix;
-    groundMatrix.setToIdentity();
-    QMatrix4x4 groundMVP = mProjectionMatrix * mViewMatrix * groundMatrix;
+   // Draw ground without texture
+QMatrix4x4 groundMatrix;
+groundMatrix.setToIdentity();
+QMatrix4x4 groundMVP = mProjectionMatrix * mViewMatrix * groundMatrix;
 
-    // Update uniform buffer for ground
-    VkDeviceSize groundOffset = mUniformBufferInfo[mWindow->currentFrame()].offset;
-    err = mDeviceFunctions->vkMapMemory(device, mBufferMemory, groundOffset,
-                                        UNIFORM_DATA_SIZE, 0, reinterpret_cast<void **>(&GPUmemPointer));
-    memcpy(GPUmemPointer, groundMVP.constData(), 16 * sizeof(float));
-    mDeviceFunctions->vkUnmapMemory(device, mBufferMemory);
+// Update uniform buffer for ground
+VkDeviceSize groundOffset = mUniformBufferInfo[mWindow->currentFrame()].offset;
+err = mDeviceFunctions->vkMapMemory(device, mBufferMemory, groundOffset,
+                                  UNIFORM_DATA_SIZE, 0, reinterpret_cast<void **>(&GPUmemPointer));
+memcpy(GPUmemPointer, groundMVP.constData(), 16 * sizeof(float));
+mDeviceFunctions->vkUnmapMemory(device, mBufferMemory);
 
-    // Draw ground
-    mDeviceFunctions->vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1,
-                                            &mDescriptorSet[mWindow->currentFrame()], 0, nullptr);
-    VkDeviceSize groundVertexOffset = 0;
-    mDeviceFunctions->vkCmdBindVertexBuffers(cb, 0, 1, &mGroundBuffer, &groundVertexOffset);
-    mDeviceFunctions->vkCmdDraw(cb, 6, 1, 0, 0);  // 6 vertices for ground
-    
-    qDebug() << "Drew larger ground plane";
+// Switch to no-texture pipeline for ground if available
+if (mNoTexturePipeline != VK_NULL_HANDLE) {
+    mDeviceFunctions->vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, mNoTexturePipeline);
+    qDebug() << "Using no-texture pipeline for ground";
+} else {
+    // Fall back to regular pipeline
+    mDeviceFunctions->vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipeline);
+    qDebug() << "Falling back to regular pipeline for ground (no-texture pipeline not available)";
+}
+
+// Draw ground using the same descriptor sets (ignoring texture binding)
+mDeviceFunctions->vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1,
+                                        &mDescriptorSet[mWindow->currentFrame()], 0, nullptr);
+VkDeviceSize groundVertexOffset = 0;
+mDeviceFunctions->vkCmdBindVertexBuffers(cb, 0, 1, &mGroundBuffer, &groundVertexOffset);
+mDeviceFunctions->vkCmdDraw(cb, 6, 1, 0, 0);  // 6 vertices for ground
+
+qDebug() << "Drew ground plane with color only (no texture)";
+
+// Switch back to textured pipeline for other objects if needed
+if (mNoTexturePipeline != VK_NULL_HANDLE) {
+    mDeviceFunctions->vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipeline);
+}
 
     // Draw player cube at its current position
     QMatrix4x4 playerMatrix;
@@ -2347,13 +2416,67 @@ void RenderWindow::startNextFrame()
 
 VkShaderModule RenderWindow::createShader(const QString &name)
 {
-    //This uses Qt's own file opening and resource system
-    //We probably will replace it with pure C++ when expanding the program
+    // Try to open the file using the standard path
     QFile file(name);
     if (!file.open(QIODevice::ReadOnly)) {
-        qWarning("Failed to read shader %s", qPrintable(name));
-        return VK_NULL_HANDLE;
+        qWarning("Failed to read shader %s, trying alternate paths...", qPrintable(name));
+        
+        // Try without the colon prefix (local file)
+        QString localPath = name;
+        if (localPath.startsWith(":/")) {
+            localPath = localPath.mid(2); // Remove the ":/" prefix
+        }
+        
+        QFile localFile(localPath);
+        if (!localFile.open(QIODevice::ReadOnly)) {
+            // Try assets/shaders directory
+            QString assetsPath = "assets/shaders/" + QFileInfo(localPath).fileName();
+            QFile assetsFile(assetsPath);
+            
+            if (!assetsFile.open(QIODevice::ReadOnly)) {
+                qWarning("Failed to read shader from all possible paths: %s", qPrintable(name));
+                return VK_NULL_HANDLE;
+            }
+            
+            QByteArray blob = assetsFile.readAll();
+            assetsFile.close();
+            
+            VkShaderModuleCreateInfo shaderInfo;
+            memset(&shaderInfo, 0, sizeof(shaderInfo));
+            shaderInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+            shaderInfo.codeSize = blob.size();
+            shaderInfo.pCode = reinterpret_cast<const uint32_t *>(blob.constData());
+            VkShaderModule shaderModule;
+            VkResult err = mDeviceFunctions->vkCreateShaderModule(mWindow->device(), &shaderInfo, nullptr, &shaderModule);
+            if (err != VK_SUCCESS) {
+                qWarning("Failed to create shader module: %d", err);
+                return VK_NULL_HANDLE;
+            }
+            
+            qDebug("Successfully loaded shader from assets path: %s", qPrintable(assetsPath));
+            return shaderModule;
+        }
+        
+        QByteArray blob = localFile.readAll();
+        localFile.close();
+        
+        VkShaderModuleCreateInfo shaderInfo;
+        memset(&shaderInfo, 0, sizeof(shaderInfo));
+        shaderInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+        shaderInfo.codeSize = blob.size();
+        shaderInfo.pCode = reinterpret_cast<const uint32_t *>(blob.constData());
+        VkShaderModule shaderModule;
+        VkResult err = mDeviceFunctions->vkCreateShaderModule(mWindow->device(), &shaderInfo, nullptr, &shaderModule);
+        if (err != VK_SUCCESS) {
+            qWarning("Failed to create shader module: %d", err);
+            return VK_NULL_HANDLE;
+        }
+        
+        qDebug("Successfully loaded shader from local path: %s", qPrintable(localPath));
+        return shaderModule;
     }
+    
+    // Original path worked
     QByteArray blob = file.readAll();
     file.close();
 
@@ -2368,10 +2491,10 @@ VkShaderModule RenderWindow::createShader(const QString &name)
         qWarning("Failed to create shader module: %d", err);
         return VK_NULL_HANDLE;
     }
-
+    
+    qDebug("Successfully loaded shader from original path: %s", qPrintable(name));
     return shaderModule;
 }
-
 void RenderWindow::getVulkanHWInfo()
 {
     qDebug("\n ***************************** Vulkan Hardware Info ******************************************* \n");
@@ -2496,7 +2619,11 @@ void RenderWindow::releaseResources()
         mDeviceFunctions->vkDestroyImage(device, mTextureImage, nullptr);
         mTextureImage = VK_NULL_HANDLE;
     }
-
+// No-texture pipeline
+if (mNoTexturePipeline != VK_NULL_HANDLE) {
+    mDeviceFunctions->vkDestroyPipeline(device, mNoTexturePipeline, nullptr);
+    mNoTexturePipeline = VK_NULL_HANDLE;
+}
     // -------------------------------------------------------------------------------------------
     // 5. Destroy descriptor set layouts and pools
     // -------------------------------------------------------------------------------------------
@@ -2774,7 +2901,7 @@ void RenderWindow::updateUniformBuffer(VkDescriptorBufferInfo &bufferInfo, const
     quint8* GPUmemPointer;
     VkResult err = mDeviceFunctions->vkMapMemory(device, mBufferMemory, bufferInfo.offset,
                                              UNIFORM_DATA_SIZE, 0, reinterpret_cast<void **>(&GPUmemPointer));
-    if (err != VK_SUCCESS) {
+        if (err != VK_SUCCESS) {
         qDebug() << "Failed to map memory for uniform buffer! Error:" << err;
         return;
     }
@@ -2911,7 +3038,7 @@ void RenderWindow::checkDoorProximity()
         
         // Check if player is trying to enter the house (by pressing a specific key or moving through door)
         checkHouseEntry(doorPosition);
-    } else {
+        } else {
         if (mDoorOpen) {
             qDebug() << "Player moved away from door - closing!";
             updateDoorState(false);
@@ -3009,7 +3136,7 @@ void RenderWindow::updateDoorState(bool open)
     void* doorData;
     VkResult err = mDeviceFunctions->vkMapMemory(device, mHouseDoorBufferMemory, 0, 
                                                 sizeof(houseDoorVertexData), 0, &doorData);
-    if (err != VK_SUCCESS) {
+            if (err != VK_SUCCESS) {
         qDebug() << "Failed to map door memory! Error:" << err;
         return;
     }

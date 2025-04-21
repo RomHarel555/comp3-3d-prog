@@ -18,6 +18,8 @@ qt_add_executable(QtVulkanApp
 set(SHADER_FILES
     color.frag
     color.vert
+    noTexture.frag
+    noTexture.vert
 )
 
 # Add the shader files to the project
@@ -45,9 +47,19 @@ set_source_files_properties("color_vert.spv"
     PROPERTIES QT_RESOURCE_ALIAS "color_vert.spv"
 )
 
+set_source_files_properties("noTexture_frag.spv"
+    PROPERTIES QT_RESOURCE_ALIAS "noTexture_frag.spv"
+)
+
+set_source_files_properties("noTexture_vert.spv"
+    PROPERTIES QT_RESOURCE_ALIAS "noTexture_vert.spv"
+)
+
 set(QtVulkanApp_resource_files
     "color_frag.spv"
     "color_vert.spv"
+    "noTexture_frag.spv"
+    "noTexture_vert.spv"
 )
 
 qt_add_resources(QtVulkanApp "QtVulkanApp"
@@ -97,8 +109,22 @@ add_custom_target(
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Compiling vertex shader"
 )
+add_custom_target(
+    PreBuildCommandNoTexF ALL
+    COMMAND glslc noTexture.frag -o noTexture_frag.spv
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Compiling no-texture fragment shader"
+)
+add_custom_target(
+    PreBuildCommandNoTexV ALL
+    COMMAND glslc noTexture.vert -o noTexture_vert.spv
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Compiling no-texture vertex shader"
+)
 
 add_dependencies(QtVulkanApp PreBuildCommandF)
 add_dependencies(QtVulkanApp PreBuildCommandV)
+add_dependencies(QtVulkanApp PreBuildCommandNoTexF)
+add_dependencies(QtVulkanApp PreBuildCommandNoTexV)
 
 

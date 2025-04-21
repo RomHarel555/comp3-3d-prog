@@ -314,4 +314,9 @@ private:
     VkBuffer mLightingBuffer = VK_NULL_HANDLE;
     VkDeviceMemory mLightingBufferMemory = VK_NULL_HANDLE;
     VkDescriptorBufferInfo mLightingBufferInfo[QVulkanWindow::MAX_CONCURRENT_FRAME_COUNT];
+
+    // No-texture pipeline resources
+    VkPipeline mNoTexturePipeline = VK_NULL_HANDLE;
+    VkShaderModule mNoTextureVertShader = VK_NULL_HANDLE;
+    VkShaderModule mNoTextureFragShader = VK_NULL_HANDLE;
 };
