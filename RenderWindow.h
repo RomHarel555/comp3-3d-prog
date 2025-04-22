@@ -35,17 +35,37 @@ struct PatrolEnemy {
         QVector3D targetPoint = movingToB ? pointB : pointA;
         QVector3D direction = targetPoint - position;
         
-        // If we've reached the target point (or very close to it)
-        if (direction.length() < 0.1f) {
-            // Switch direction
+        // Check if we've passed or reached the target point in the main direction of movement
+        bool reachedTarget = false;
+        
+        // For horizontal patrol (X-axis primary movement)
+        if (abs(pointB.x() - pointA.x()) > abs(pointB.z() - pointA.z())) {
+            if (movingToB && position.x() >= targetPoint.x() - 0.1f) {
+                reachedTarget = true;
+            }
+            else if (!movingToB && position.x() <= targetPoint.x() + 0.1f) {
+                reachedTarget = true;
+            }
+        }
+        // For vertical patrol (Z-axis primary movement)
+        else {
+            if (movingToB && position.z() >= targetPoint.z() - 0.1f) {
+                reachedTarget = true;
+            }
+            else if (!movingToB && position.z() <= targetPoint.z() + 0.1f) {
+                reachedTarget = true;
+            }
+        }
+        
+        // If we've reached the target, switch direction
+        if (reachedTarget) {
             movingToB = !movingToB;
-            // Recalculate direction after switching
             targetPoint = movingToB ? pointB : pointA;
             direction = targetPoint - position;
         }
         
         // Normalize direction and apply speed
-        if (direction.length() > 0) {
+        if (direction.length() > 0.0001f) { // Prevent division by zero
             direction.normalize();
             position += direction * speed;
         }

@@ -1,12 +1,12 @@
 #include "RenderWindow.h"
 #include <QVulkanFunctions>
 #include <QFile>
-#include <QFileInfo>  // Added for QFileInfo class
-#include <QDir>       // Added for QDir class
+#include <QFileInfo>  
+#include <QDir>       
 #include <QDebug>
 #include "VulkanWindow.h"
 
-// ENLARGED ground vertex data (10x10 plane instead of 5x5)
+
 static float groundVertexData[] = {
     // Position            // Color              // Texture coords
     -10.0f,  0.0f, -10.0f,   0.3f, 0.3f, 0.3f,   0.0f, 0.0f,  // Bottom-left
@@ -18,7 +18,7 @@ static float groundVertexData[] = {
      10.0f,  0.0f, -10.0f,   0.3f, 0.3f, 0.3f,   1.0f, 0.0f   // Bottom-right
 };
 
-// FIXED Player cube vertex data (MUCH brighter blue color for visibility)
+
 static float playerVertexData[] = {
     // Position            // Color              // Texture coords
     // Front face
@@ -70,7 +70,7 @@ static float playerVertexData[] = {
      0.7f, -0.7f, -0.7f,   0.0f, 0.0f, 1.0f,   1.0f, 0.0f   // Bottom-right
 };
 
-// FIXED Collectible vertex data - bright yellow cube with texture coordinates
+
 static float collectibleVertexData[] = {
     // Front face
     -0.6f, -0.6f,  0.6f,   1.0f, 1.0f, 0.0f,   0.0f, 0.0f,  // Bottom-left
@@ -343,12 +343,12 @@ static float houseDoorVertexData[] = {
 // House door vertex data - dark brown (open position - rotated 90 degrees) with texture coordinates
 static float houseDoorOpenVertexData[] = {
     // Door (rotated to open position) - with a different color to make it obvious when open
-    -1.0f,  0.0f,  2.9f,   0.9f, 0.5f, 0.2f,   0.0f, 0.0f,  // Bottom-left (hinge point) - brighter color
-    -1.0f,  2.0f,  2.9f,   0.9f, 0.5f, 0.2f,   0.0f, 1.0f,  // Top-left (hinge point) - brighter color
-    -1.0f,  0.0f,  0.9f,   0.9f, 0.5f, 0.2f,   1.0f, 0.0f,  // Bottom-right (new position) - brighter color
-    -1.0f,  2.0f,  0.9f,   0.9f, 0.5f, 0.2f,   1.0f, 1.0f,  // Top-right (new position) - brighter color
-    -1.0f,  0.0f,  0.9f,   0.9f, 0.5f, 0.2f,   1.0f, 0.0f,  // Bottom-right (new position) - brighter color
-    -1.0f,  2.0f,  2.9f,   0.9f, 0.5f, 0.2f,   0.0f, 1.0f   // Top-left (hinge point) - brighter color
+    -1.0f,  0.0f,  2.9f,   0.9f, 0.5f, 0.2f,   0.0f, 0.0f,  // Bottom-left
+    -1.0f,  2.0f,  2.9f,   0.9f, 0.5f, 0.2f,   0.0f, 1.0f,  // Top-left 
+    -1.0f,  0.0f,  0.9f,   0.9f, 0.5f, 0.2f,   1.0f, 0.0f,  // Bottom-right 
+    -1.0f,  2.0f,  0.9f,   0.9f, 0.5f, 0.2f,   1.0f, 1.0f,  // Top-right 
+    -1.0f,  0.0f,  0.9f,   0.9f, 0.5f, 0.2f,   1.0f, 0.0f,  // Bottom-right 
+    -1.0f,  2.0f,  2.9f,   0.9f, 0.5f, 0.2f,   0.0f, 1.0f   // Top-left 
 };
 
 // House roof vertex data - red with texture coordinates
@@ -374,7 +374,7 @@ static float houseRoofVertexData[] = {
     0.0f,   5.0f,  0.0f,   0.8f, 0.2f, 0.2f,   0.5f, 1.0f   // Top
 };
 
-// Indoor walls vertex data - light beige
+// Indoor walls vertex data
 static float indoorWallsVertexData[] = {
     // Front wall (with door hole)
     // Left part of front wall
@@ -454,7 +454,7 @@ static float exitDoorVertexData[] = {
 };
 
 //Utility variable and function for alignment:
-static const int UNIFORM_DATA_SIZE = 16 * sizeof(float); //our MVP matrix contains 16 floats
+static const int UNIFORM_DATA_SIZE = 16 * sizeof(float); // MVP matrix contains 16 floats
 
 // Forward declarations
 static uint32_t getMemoryTypeIndex(const VkPhysicalDeviceMemoryProperties& memProperties, 
@@ -1157,7 +1157,7 @@ void RenderWindow::initResources()
     memset(&rs, 0, sizeof(rs));
     rs.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
     rs.polygonMode = VK_POLYGON_MODE_FILL;
-    rs.cullMode = VK_CULL_MODE_NONE; // we want the back face as well
+    rs.cullMode = VK_CULL_MODE_NONE;
     rs.frontFace = VK_FRONT_FACE_CLOCKWISE;
     rs.lineWidth = 1.0f;
     pipelineInfo.pRasterizationState = &rs;
@@ -2247,7 +2247,7 @@ void RenderWindow::drawOutdoorScene(VkDevice device, VkCommandBuffer cb, quint8*
             QMatrix4x4 collectibleMatrix;
             collectibleMatrix.setToIdentity();
             collectibleMatrix.translate(mCollectibles[i].position);
-            // Make collectibles a bit smaller
+            // change size of collectible
             collectibleMatrix.scale(0.4f);
             
             // Update collectible uniform buffer with this collectible's MVP
@@ -2280,7 +2280,7 @@ void RenderWindow::drawOutdoorScene(VkDevice device, VkCommandBuffer cb, quint8*
         npcMatrix.setToIdentity();
         npcMatrix.translate(mNPCs[0].position);
         
-        // Make NPCs slightly larger (1.2x) for better visibility
+        // change size of NPC
         npcMatrix.scale(1.2f);
         
         // Update uniform buffer with NPC1's MVP
@@ -2327,7 +2327,7 @@ void RenderWindow::drawOutdoorScene(VkDevice device, VkCommandBuffer cb, quint8*
         npcMatrix.setToIdentity();
         npcMatrix.translate(mNPCs[1].position);
         
-        // Make NPCs slightly larger (1.2x) for better visibility
+        // change size of NPC
         npcMatrix.scale(1.2f);
         
         // Update uniform buffer with NPC2's MVP
@@ -2374,7 +2374,7 @@ void RenderWindow::drawOutdoorScene(VkDevice device, VkCommandBuffer cb, quint8*
         npcMatrix.setToIdentity();
         npcMatrix.translate(mNPCs[2].position);
         
-        // Make NPCs slightly larger (1.2x) for better visibility
+        // change size of NPC
         npcMatrix.scale(1.2f);
         
         // Update uniform buffer with NPC3's MVP
@@ -2503,7 +2503,7 @@ void RenderWindow::drawIndoorScene(VkDevice device, VkCommandBuffer cb, quint8* 
     // Draw indoor floor
     QMatrix4x4 groundMatrix;
     groundMatrix.setToIdentity();
-    // Make the floor dark wood colored by scaling blue component
+    // change size of floor
     groundMatrix.scale(1.0f, 1.0f, 0.5f);
     QMatrix4x4 groundMVP = mProjectionMatrix * mViewMatrix * groundMatrix;
 
@@ -2529,7 +2529,7 @@ void RenderWindow::drawIndoorScene(VkDevice device, VkCommandBuffer cb, quint8* 
         QMatrix4x4 collectibleMatrix;
         collectibleMatrix.setToIdentity();
         collectibleMatrix.translate(mIndoorCollectible.position);
-        // Make collectibles a bit smaller and shinier
+        // change size of collectible
         collectibleMatrix.scale(0.5f);
         
         // Update collectible uniform buffer
@@ -2721,7 +2721,7 @@ VkShaderModule RenderWindow::createShader(const QString &name)
         // Try without the colon prefix (local file)
         QString localPath = name;
         if (localPath.startsWith(":/")) {
-            localPath = localPath.mid(2); // Remove the ":/" prefix
+            localPath = localPath.mid(2);
         }
         
         QFile localFile(localPath);
@@ -2773,7 +2773,7 @@ VkShaderModule RenderWindow::createShader(const QString &name)
         return shaderModule;
     }
     
-    // Original path worked
+    
     QByteArray blob = file.readAll();
     file.close();
 
@@ -3135,7 +3135,6 @@ void RenderWindow::initializeCollectibles()
     mCollectedCount = 0;
 
     // Create collectibles in a grid with HIGHER POSITION
-    // Making them clearly visible on the larger ground plane
     mCollectibles.append(Collectible(QVector3D(-6.0f, 1.5f, -6.0f)));   // Top left
     mCollectibles.append(Collectible(QVector3D(0.0f, 1.5f, -6.0f)));    // Top center
     mCollectibles.append(Collectible(QVector3D(6.0f, 1.5f, -6.0f)));    // Top right
@@ -3271,19 +3270,19 @@ void RenderWindow::updateNPCs()
         // Update NPC position along its patrol route
         mNPCs[i].updatePosition();
         // If heightmap is enabled, place NPC on top of terrain
-if (mUseHeightMap && mHeightMap.getVertices().size() > 0) {
-    // Get height at current position using the enhanced barycentric coordinate method
-    float terrainHeight = mHeightMap.getHeightAt(mNPCs[i].position.x(), mNPCs[i].position.z());
-    
-    // Set NPC height to terrain height plus a small offset
-    mNPCs[i].position.setY(terrainHeight + 1.0f); // Increase height for visibility
-    } 
+        if (mUseHeightMap && mHeightMap.getVertices().size() > 0) {
+            // Get height at current position using the enhanced barycentric coordinate method
+            float terrainHeight = mHeightMap.getHeightAt(mNPCs[i].position.x(), mNPCs[i].position.z());
+            
+            // Set NPC height to terrain height plus a small offset
+            mNPCs[i].position.setY(terrainHeight + 1.0f); 
+        } 
     }
 }
 
 bool RenderWindow::checkNPCCollision()
 {
-    const float collisionDistance = 0.9f; // Reduced for more precise detection
+    const float collisionDistance = 0.9f;
     
     for (int i = 0; i < mNPCs.size(); ++i) {
         // For collision, only check X and Z coordinates since Y is different by design
@@ -3502,7 +3501,7 @@ void RenderWindow::initSwapChainResources()
     // Save aspect ratio for projection matrix
     mAspectRatio = float(mWindow->swapChainImageSize().width()) / float(mWindow->swapChainImageSize().height());
     
-    // No other resources to initialize in this demo
+        
 }
 
 void RenderWindow::checkIndoorCollectibleCollision()
@@ -4283,7 +4282,7 @@ void RenderWindow::createImage(uint32_t width, uint32_t height, VkFormat format,
 void RenderWindow::updateLightingData()
 {
     // Update view position to match camera position for accurate lighting calculations
-    // We use the player position for the view position
+    // use the player position for the view position
     mLightingData.viewPosition[0] = mPlayerPosition.x();
     mLightingData.viewPosition[1] = mPlayerPosition.y();
     mLightingData.viewPosition[2] = mPlayerPosition.z();
@@ -4294,10 +4293,10 @@ void RenderWindow::updateLightingData()
     mLightingData.lightPosition[2] = mPlayerPosition.z() + 1.0f;
     
     // Set good lighting parameters
-    mLightingData.lightColor[0] = 1.0f;  // Full white light
+    mLightingData.lightColor[0] = 1.0f;  // white light
     mLightingData.lightColor[1] = 1.0f;
     mLightingData.lightColor[2] = 1.0f;
-    mLightingData.ambientStrength = 0.3f;  // Increase ambient so objects aren't too dark
+    mLightingData.ambientStrength = 0.3f;  // increased ambient so objects aren't too dark
     mLightingData.specularStrength = 0.5f;
     mLightingData.shininess = 32.0f;
     
@@ -4506,7 +4505,7 @@ void RenderWindow::loadCrateCubeModel() {
         
         // Normal (converted to color)
         QVector3D normal = vertex.normal.normalized();
-        vertexData.append(normal.x() * 0.5f + 0.5f); // Convert from [-1,1] to [0,1]
+        vertexData.append(normal.x() * 0.5f + 0.5f);
         vertexData.append(normal.y() * 0.5f + 0.5f);
         vertexData.append(normal.z() * 0.5f + 0.5f);
         
