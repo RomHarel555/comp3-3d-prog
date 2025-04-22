@@ -197,7 +197,17 @@ private:
     Triangle findTriangleAtPosition(float x, float z);
     bool isPointInTriangle2D(const QVector3D& p, const QVector3D& v0, const QVector3D& v1, const QVector3D& v2);
     QVector3D calculateBarycentric(const QVector3D& p, const QVector3D& a, const QVector3D& b, const QVector3D& c);
-    float getHeightAtPosition(float x, float z);
+    float getHeightAtPosition(float x, float z) {
+        // When inside the house (Scene 2), use a constant floor height
+        if (mCurrentScene == 2) {
+            return 0.0f; // Flat floor inside the house
+        }
+        
+        // Otherwise use the heightmap for outdoor terrain
+        Triangle tri = findTriangleAtPosition(x, z);
+        QVector3D bary = calculateBarycentric(QVector3D(x, 0, z), tri.v0, tri.v1, tri.v2);
+        return bary.x() * tri.v0.y() + bary.y() * tri.v1.y() + bary.z() * tri.v2.y();
+    }
     
     // Buffer management helpers
     void createBuffer(

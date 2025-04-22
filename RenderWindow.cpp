@@ -583,20 +583,19 @@ void RenderWindow::moveCube(const QVector3D& movement)
     mPlayerPosition.setX(qBound(-BOUNDARY, mPlayerPosition.x(), BOUNDARY));
     mPlayerPosition.setZ(qBound(-BOUNDARY, mPlayerPosition.z(), BOUNDARY));
     
-    // If heightmap is enabled, place player on top of terrain
-    if (mUseHeightMap && mHeightMap.getVertices().size() > 0) {
-        // Get height at current position using the enhanced barycentric coordinate method
-        float terrainHeight = mHeightMap.getHeightAt(mPlayerPosition.x(), mPlayerPosition.z());
-        
-        // Add a small offset to keep player visible above the terrain
-        mPlayerPosition.setY(terrainHeight + 1.0f);
-        
-        qDebug() << "Positioned player on terrain at height:" << terrainHeight;
-    } else {
-        // Force Y to be 0 to keep player on ground if no heightmap
-        mPlayerPosition.setY(0.0f);
-    }
-
+    // Only apply heightmap in outdoor scene (Scene 1)
+  if (mCurrentScene == 1 && mUseHeightMap && mHeightMap.getVertices().size() > 0) {
+    // Get height at current position using the enhanced barycentric coordinate method
+    float terrainHeight = mHeightMap.getHeightAt(mPlayerPosition.x(), mPlayerPosition.z());
+    
+    // Add a small offset to keep player visible above the terrain
+    mPlayerPosition.setY(terrainHeight + 1.0f);
+    
+    qDebug() << "Positioned player on terrain at height:" << terrainHeight;
+} else {
+    // Force Y to be 0 to keep player on flat ground (in indoor scene or if no heightmap)
+    mPlayerPosition.setY(0.0f);
+}
     qDebug() << "PLAYER MOVED: From" << oldPos << "to" << mPlayerPosition 
              << "- Applied movement:" << movement;
              
