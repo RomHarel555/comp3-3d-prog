@@ -107,9 +107,6 @@ void HeightMap::makeTerrain(unsigned char* textureData, int widthIn, int heightI
 
 float HeightMap::getHeightAt(float x, float z)
 {
-    // This is a simplified implementation to find the height at a specific position
-    // A more accurate implementation would use barycentric coordinates (as mentioned in step 5)
-    
     // Convert world coordinates to heightmap grid coordinates
     float gridX = (x - (0.f - mWidth * mHorizontalSpacing / 2.f)) / mHorizontalSpacing;
     float gridZ = ((0.f + mHeight * mHorizontalSpacing / 2.f) - z) / mHorizontalSpacing;
@@ -126,16 +123,81 @@ float HeightMap::getHeightAt(float x, float z)
     float fracX = gridX - x0;
     float fracZ = gridZ - z0;
     
-    // Get the four corner heights
-    float h00 = mVertices[x0 + z0 * mWidth].y;
-    float h10 = mVertices[(x0 + 1) + z0 * mWidth].y;
-    float h01 = mVertices[x0 + (z0 + 1) * mWidth].y;
-    float h11 = mVertices[(x0 + 1) + (z0 + 1) * mWidth].y;
+    // Get the four corner heights and positions
+    int idx00 = x0 + z0 * mWidth;
+    int idx10 = (x0 + 1) + z0 * mWidth;
+    int idx01 = x0 + (z0 + 1) * mWidth;
+    int idx11 = (x0 + 1) + (z0 + 1) * mWidth;
     
-    // Bilinear interpolation
-    float h0 = h00 * (1.0f - fracX) + h10 * fracX;
-    float h1 = h01 * (1.0f - fracX) + h11 * fracX;
-    float height = h0 * (1.0f - fracZ) + h1 * fracZ;
+    // Make sure indices are valid
+    if (idx00 >= mVertices.size() || idx10 >= mVertices.size() || 
+        idx01 >= mVertices.size() || idx11 >= mVertices.size()) {
+        qDebug() << "Invalid heightmap indices at" << x << "," << z;
+        return 0.0f;
+    }
+    
+    // Get the vertex positions
+    QVector3D v00(mVertices[idx00].x, mVertices[idx00].y, mVertices[idx00].z);
+    QVector3D v10(mVertices[idx10].x, mVertices[idx10].y, mVertices[idx10].z);
+    QVector3D v01(mVertices[idx01].x, mVertices[idx01].y, mVertices[idx01].z);
+    QVector3D v11(mVertices[idx11].x, mVertices[idx11].y, mVertices[idx11].z);
+    
+    // Create a point for the player position
+    QVector3D p(x, 0.0f, z);
+    
+    // Determine which triangle in the quad we're on and calculate barycentric coordinates
+    float height;
+    if (fracX + fracZ <= 1.0f) {
+        // Top-left triangle (v00, v10, v01)
+        // Calculate barycentric coordinates
+        QVector3D bary = calculateBarycentric(p, v00, v10, v01);
+        
+        // Use barycentric coordinates to interpolate height
+        height = bary.x() * v00.y() + bary.y() * v10.y() + bary.z() * v01.y();
+    } else {
+        // Bottom-right triangle (v11, v01, v10)
+        // Calculate barycentric coordinates
+        QVector3D bary = calculateBarycentric(p, v11, v01, v10);
+        
+        // Use barycentric coordinates to interpolate height
+        height = bary.x() * v11.y() + bary.y() * v01.y() + bary.z() * v10.y();
+    }
     
     return height;
+}
+
+// Helper function to calculate barycentric coordinates
+QVector3D HeightMap::calculateBarycentric(const QVector3D& p, const QVector3D& a, const QVector3D& b, const QVector3D& c)
+{
+    // Calculate the barycentric coordinates of point p in triangle (a,b,c)
+    // Using only X and Z components for the calculation (ignoring height)
+    
+    // Compute vectors for the 2D plane (ignoring height)
+    QVector2D p2d(p.x(), p.z());
+    QVector2D a2d(a.x(), a.z());
+    QVector2D b2d(b.x(), b.z());
+    QVector2D c2d(c.x(), c.z());
+    
+    // Calculate vectors from point a to the other points
+    QVector2D v0 = b2d - a2d;
+    QVector2D v1 = c2d - a2d;
+    QVector2D v2 = p2d - a2d;
+    
+    // Compute dot products
+    float d00 = QVector2D::dotProduct(v0, v0);
+    float d01 = QVector2D::dotProduct(v0, v1);
+    float d11 = QVector2D::dotProduct(v1, v1);
+    float d20 = QVector2D::dotProduct(v2, v0);
+    float d21 = QVector2D::dotProduct(v2, v1);
+    
+    // Calculate barycentric coordinates
+    float denom = d00 * d11 - d01 * d01;
+    if (std::abs(denom) < 1e-6f) // Avoid division by zero for degenerate triangles
+        return QVector3D(1.0f, 0.0f, 0.0f); // Return default value if triangle is degenerate
+        
+    float v = (d11 * d20 - d01 * d21) / denom;
+    float w = (d00 * d21 - d01 * d20) / denom;
+    float u = 1.0f - v - w;
+    
+    return QVector3D(u, v, w);
 } 

@@ -517,8 +517,19 @@ void RenderWindow::moveForward(float distance)
     // Multiply distance by 5 for faster movement
     mPlayerPosition.setZ(mPlayerPosition.z() - (distance * 5.0f));
     
-    // Keep player on ground
-    mPlayerPosition.setY(0.0f);
+    // If heightmap is enabled, place player on top of terrain
+    if (mUseHeightMap && mHeightMap.getVertices().size() > 0) {
+        // Get height at current position using the enhanced barycentric coordinate method
+        float terrainHeight = mHeightMap.getHeightAt(mPlayerPosition.x(), mPlayerPosition.z());
+        
+        // Add a small offset to keep player visible above the terrain
+        mPlayerPosition.setY(terrainHeight + 1.0f);
+        
+        qDebug() << "Positioned player on terrain at height:" << terrainHeight;
+    } else {
+        // Keep player on ground if no heightmap
+        mPlayerPosition.setY(0.0f);
+    }
     
     qDebug() << "Moving player cube from" << oldPos << "to" << mPlayerPosition;
     
@@ -526,8 +537,7 @@ void RenderWindow::moveForward(float distance)
     if (mWindow) {
         mWindow->requestUpdate();
     }
-}
-
+} 
 void RenderWindow::moveRight(float distance)
 {
     // Store old position for debug output
@@ -537,8 +547,19 @@ void RenderWindow::moveRight(float distance)
     // Multiply distance by 5 for faster movement
     mPlayerPosition.setX(mPlayerPosition.x() + (distance * 5.0f));
     
-    // Keep player on ground
-    mPlayerPosition.setY(0.0f);
+    // If heightmap is enabled, place player on top of terrain
+    if (mUseHeightMap && mHeightMap.getVertices().size() > 0) {
+        // Get height at current position using the enhanced barycentric coordinate method
+        float terrainHeight = mHeightMap.getHeightAt(mPlayerPosition.x(), mPlayerPosition.z());
+        
+        // Add a small offset to keep player visible above the terrain
+        mPlayerPosition.setY(terrainHeight + 1.0f);
+        
+        qDebug() << "Positioned player on terrain at height:" << terrainHeight;
+    } else {
+        // Keep player on ground if no heightmap
+        mPlayerPosition.setY(0.0f);
+    }
     
     qDebug() << "Moving player cube from" << oldPos << "to" << mPlayerPosition;
     
@@ -546,7 +567,7 @@ void RenderWindow::moveRight(float distance)
     if (mWindow) {
         mWindow->requestUpdate();
     }
-}
+} 
 
 void RenderWindow::moveCube(const QVector3D& movement)
 {
@@ -562,8 +583,19 @@ void RenderWindow::moveCube(const QVector3D& movement)
     mPlayerPosition.setX(qBound(-BOUNDARY, mPlayerPosition.x(), BOUNDARY));
     mPlayerPosition.setZ(qBound(-BOUNDARY, mPlayerPosition.z(), BOUNDARY));
     
-    // Force Y to be 0 to keep player on ground
-    mPlayerPosition.setY(0.0f);
+    // If heightmap is enabled, place player on top of terrain
+    if (mUseHeightMap && mHeightMap.getVertices().size() > 0) {
+        // Get height at current position using the enhanced barycentric coordinate method
+        float terrainHeight = mHeightMap.getHeightAt(mPlayerPosition.x(), mPlayerPosition.z());
+        
+        // Add a small offset to keep player visible above the terrain
+        mPlayerPosition.setY(terrainHeight + 1.0f);
+        
+        qDebug() << "Positioned player on terrain at height:" << terrainHeight;
+    } else {
+        // Force Y to be 0 to keep player on ground if no heightmap
+        mPlayerPosition.setY(0.0f);
+    }
 
     qDebug() << "PLAYER MOVED: From" << oldPos << "to" << mPlayerPosition 
              << "- Applied movement:" << movement;
@@ -575,8 +607,7 @@ void RenderWindow::moveCube(const QVector3D& movement)
     if (mWindow) {
         mWindow->requestUpdate();
     }
-}
-
+} 
 void RenderWindow::rotate(float yawDelta, float pitchDelta)
 {
     // Ignore rotation since we're using a fixed top-down view
@@ -2076,9 +2107,31 @@ void RenderWindow::initializeHeightMap()
     mUseHeightMap = true;
     
     qDebug() << "HeightMap initialization complete!";
+    adjustCollectibleHeights();
 }
+
+void RenderWindow::adjustCollectibleHeights()
+{
+    if (mUseHeightMap && mHeightMap.getVertices().size() > 0) {
+        qDebug() << "Adjusting collectible heights based on heightmap...";
+        for (int i = 0; i < mCollectibles.size(); i++) {
+            // Get height at collectible position
+            float terrainHeight = mHeightMap.getHeightAt(mCollectibles[i].position.x(), mCollectibles[i].position.z());
+            
+            // Place collectible above the terrain with an increased offset to make it clearly visible
+            mCollectibles[i].position.setY(terrainHeight + 4.0f); // Large offset for better visibility
+            
+            qDebug() << "Placed collectible" << i << "at height:" << mCollectibles[i].position.y() 
+                     << "over terrain height:" << terrainHeight;
+        }
+    } else {
+        qDebug() << "WARNING: Cannot adjust collectible heights - heightmap condition not met";
+    }
+} 
 void RenderWindow::drawOutdoorScene(VkDevice device, VkCommandBuffer cb, quint8* GPUmemPointer, VkResult& err)
 {
+
+
    // Draw heightmap terrain
    if (mUseHeightMap && mHeightMapVertexBuffer != VK_NULL_HANDLE && mHeightMapIndexBuffer != VK_NULL_HANDLE) {
        qDebug() << "Drawing HeightMap terrain...";
@@ -2376,6 +2429,16 @@ void RenderWindow::drawOutdoorScene(VkDevice device, VkCommandBuffer cb, quint8*
     // Create and update house matrix
     QMatrix4x4 houseMatrix;
     houseMatrix.setToIdentity();
+    // If heightmap is enabled, adjust house position to be on top of the terrain
+float houseTerrainHeight = 0.0f;
+if (mUseHeightMap && mHeightMap.getVertices().size() > 0) {
+    // Get height at house position
+    houseTerrainHeight = mHeightMap.getHeightAt(mHousePosition.x(), mHousePosition.z());
+    
+    // Update house Y-position to be on top of the terrain
+       mHousePosition.setY(houseTerrainHeight + 0.8f); // Increased offset to ensure visibility
+    
+    qDebug() << "Positioned house on terrain at height:" << houseTerrainHeight;
     // Position the house at a fixed location
     houseMatrix.translate(mHousePosition);  // Place the house in the corner of the map
     QMatrix4x4 houseMVP = mProjectionMatrix * mViewMatrix * houseMatrix;
@@ -2417,6 +2480,7 @@ void RenderWindow::drawOutdoorScene(VkDevice device, VkCommandBuffer cb, quint8*
 
         qDebug() << "Drew house at position" << mHousePosition;
     }
+}
 }
 
 void RenderWindow::drawIndoorScene(VkDevice device, VkCommandBuffer cb, quint8* GPUmemPointer, VkResult& err)
@@ -3083,6 +3147,23 @@ void RenderWindow::initializeCollectibles()
     mIndoorCollectible.isCollected = false;
 
     qDebug() << "Initialized 6 outdoor and 1 indoor collectibles";
+
+    // If heightmap is enabled, adjust collectible heights to be on top of the terrain
+    if (mUseHeightMap && mHeightMap.getVertices().size() > 0) {
+        qDebug() << "Adjusting collectible heights based on heightmap...";
+        for (int i = 0; i < mCollectibles.size(); i++) {
+            // Get height at collectible position
+            float terrainHeight = mHeightMap.getHeightAt(mCollectibles[i].position.x(), mCollectibles[i].position.z());
+            
+            // Place collectible above the terrain with an offset to make it clearly visible
+            mCollectibles[i].position.setY(terrainHeight + 4.0f); // Increased offset for better visibility
+            
+            qDebug() << "Placed collectible" << i << "at height:" << mCollectibles[i].position.y() 
+                     << "over terrain height:" << terrainHeight;
+        }
+    } else {
+        qDebug() << "WARNING: Not adjusting collectible heights - heightmap condition not met";
+    }
 }
 
 void RenderWindow::checkCollectibleCollisions()
@@ -3189,6 +3270,14 @@ void RenderWindow::updateNPCs()
     for (int i = 0; i < mNPCs.size(); ++i) {
         // Update NPC position along its patrol route
         mNPCs[i].updatePosition();
+        // If heightmap is enabled, place NPC on top of terrain
+if (mUseHeightMap && mHeightMap.getVertices().size() > 0) {
+    // Get height at current position using the enhanced barycentric coordinate method
+    float terrainHeight = mHeightMap.getHeightAt(mNPCs[i].position.x(), mNPCs[i].position.z());
+    
+    // Set NPC height to terrain height plus a small offset
+    mNPCs[i].position.setY(terrainHeight + 1.0f); // Increase height for visibility
+    } 
     }
 }
 
@@ -3261,7 +3350,7 @@ void RenderWindow::checkDoorProximity()
     
     // Debug output
     qDebug() << "Distance to door:" << distance << "Player position:" << mPlayerPosition << "Door position:" << doorPosition;
-    
+    qDebug() << "Checking door proximity - Player:" << mPlayerPosition << "Door:" << doorPosition  << "Distance:" << distance << "Door open:" << mDoorOpen;
     // Update door state based on proximity
     if (distance < mDoorOpenDistance) {
         if (!mDoorOpen) {
@@ -3301,13 +3390,11 @@ void RenderWindow::checkHouseEntry(const QVector3D& doorPosition)
     
     // Check if player is within entry zone 
     // (within small distance from door and aligned with doorway)
-    float entryDistance = 1.5f; // Increased for easier detection
-    float doorwayWidth = 1.5f;  // Increased for easier entry
-    
-    // If player is close to door position and roughly aligned with door
-    if (relativePos.length() < entryDistance && 
-        std::abs(relativePos.x()) < doorwayWidth &&
-        relativePos.z() < 0.5f && relativePos.z() > -0.5f) { // Near the door plane
+   float entryDistance = 2.0f;
+float doorwayWidth = 2.0f;
+if (relativePos.length() < entryDistance && 
+    std::abs(relativePos.x()) < doorwayWidth &&
+    relativePos.z() < 1.0f && relativePos.z() > -1.0f) {
         
         qDebug() << "*** PLAYER ENTERED HOUSE - TRANSITIONING TO SCENE 2! ***";
         // Force scene transition

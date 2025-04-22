@@ -14,6 +14,11 @@ struct Collectible {
     Collectible(const QVector3D& pos) : position(pos), isCollected(false) {}
 };
 
+// Structure to represent a triangle in 3D space for heightmap terrain following
+struct Triangle {
+    QVector3D v0, v1, v2;  // Positions of the three vertices
+};
+
 // Structure to represent NPC enemies that patrol
 struct PatrolEnemy {
     QVector3D position;     // Current position
@@ -96,6 +101,7 @@ public:
 
     // Collectible management
     void initializeCollectibles();
+    void adjustCollectibleHeights();
     void checkCollectibleCollisions();
     int getCollectedCount() const { return mCollectedCount; }
     int getTotalCollectibles() const { return mCollectibles.size() + 1; } // +1 for indoor collectible
@@ -166,6 +172,12 @@ public:
 private:
     VkShaderModule createShader(const QString &name);
     void updateUniformBuffer(VkDescriptorBufferInfo &bufferInfo, const QMatrix4x4 &matrix);
+    
+    // Heightmap terrain following using barycentric coordinates
+    Triangle findTriangleAtPosition(float x, float z);
+    bool isPointInTriangle2D(const QVector3D& p, const QVector3D& v0, const QVector3D& v1, const QVector3D& v2);
+    QVector3D calculateBarycentric(const QVector3D& p, const QVector3D& a, const QVector3D& b, const QVector3D& c);
+    float getHeightAtPosition(float x, float z);
     
     // Buffer management helpers
     void createBuffer(

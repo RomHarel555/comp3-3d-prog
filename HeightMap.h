@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <QVector3D>
+#include <QVector2D>
 #include "ObjLoader.h"
 
 class HeightMap
@@ -29,6 +30,9 @@ public:
     const std::vector<uint32_t>& getIndices() const { return mIndices; }
     
 private:
+    // Helper function to calculate barycentric coordinates for a point in a triangle
+    QVector3D calculateBarycentric(const QVector3D& p, const QVector3D& a, const QVector3D& b, const QVector3D& c);
+    
     std::vector<ObjLoader::Vertex> mVertices;
     std::vector<uint32_t> mIndices;
     
