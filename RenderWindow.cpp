@@ -719,6 +719,9 @@ void RenderWindow::initResources()
     // Load NPC 3D model for later use
     loadNPCModel();
 
+   initializeHeightMap();
+
+
     // Create lighting uniform buffer
     const VkDeviceSize lightingBufferSize = sizeof(LightingInfo);
     VkBuffer stagingBuffer;
@@ -1888,43 +1891,273 @@ void RenderWindow::createIndoorSceneResources()
     qDebug() << "Initialized indoor scene resources successfully";
 }
 
+void RenderWindow::initializeHeightMap()
+{
+    // Create the heightmap from the image
+    qDebug() << "Initializing HeightMap...";
+    
+    bool heightmapCreated = false;
+    
+    // Try direct loading with Qt Resource system
+    QFile resourceFile(":/assets/heightmaps/Heightmap.jpg");
+    if (resourceFile.exists()) {
+        qDebug() << "Resource file exists in Qt resource system";
+        mHeightMap.makeTerrain(":/assets/heightmaps/Heightmap.jpg");
+        
+        // Check if heightmap was created
+        if (!mHeightMap.getVertices().empty() && !mHeightMap.getIndices().empty()) {
+            qDebug() << "Heightmap created successfully from resource";
+            heightmapCreated = true;
+        } else {
+            qDebug() << "Failed to create heightmap from resource file";
+        }
+    } else {
+        qDebug() << "Resource file DOES NOT exist in Qt resource system";
+        
+        // Try to find the file in alternative locations
+        QStringList possiblePaths = {
+            "assets/heightmaps/Heightmap.jpg",
+            "../assets/heightmaps/Heightmap.jpg",
+            "../../assets/heightmaps/Heightmap.jpg",
+            "../QtVulkanApp-main/assets/heightmaps/Heightmap.jpg",
+            "C:/Users/romha/Downloads/QtVulkanApp-main/assets/heightmaps/Heightmap.jpg"
+        };
+        
+        for (const QString& path : possiblePaths) {
+            QFile file(path);
+            if (file.exists()) {
+                qDebug() << "Found heightmap at:" << path;
+                mHeightMap.makeTerrain(path.toStdString());
+                
+                // Check if heightmap was created
+                if (!mHeightMap.getVertices().empty() && !mHeightMap.getIndices().empty()) {
+                    qDebug() << "Heightmap created successfully from file:" << path;
+                    heightmapCreated = true;
+                    break;
+                } else {
+                    qDebug() << "Failed to create heightmap from file:" << path;
+                }
+            }
+        }
+    }
+    
+    // If no heightmap created yet, create a procedural one
+    if (!heightmapCreated) {
+        qDebug() << "Creating procedural heightmap...";
+        
+        // Create a simple procedural heightmap (128x128 grayscale image)
+        const int width = 128;
+        const int height = 128;
+        
+        // Allocate memory for RGBA data (4 bytes per pixel)
+        unsigned char* heightmapData = new unsigned char[width * height * 4];
+        
+        // Generate a simple hill/valley pattern
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                // Create a sin wave pattern
+                float dx = (x / (float)width - 0.5f) * 10.0f;
+                float dy = (y / (float)height - 0.5f) * 10.0f;
+                float dist = sqrt(dx*dx + dy*dy);
+                
+                // Combine multiple sin waves for more interesting terrain
+                float heightValue = 
+                    128.0f + 
+                    64.0f * sin(dist) + 
+                    32.0f * sin(dx*2) * sin(dy*2);
+                
+                // Clamp to 0-255
+                unsigned char pixelValue = (unsigned char)std::max(0.0f, std::min(255.0f, heightValue));
+                
+                // Set RGBA values (using the same value for all channels)
+                heightmapData[(y * width + x) * 4 + 0] = pixelValue; // R
+                heightmapData[(y * width + x) * 4 + 1] = pixelValue; // G
+                heightmapData[(y * width + x) * 4 + 2] = pixelValue; // B
+                heightmapData[(y * width + x) * 4 + 3] = 255;        // A (fully opaque)
+            }
+        }
+        
+        qDebug() << "Created procedural heightmap data, trying to use it...";
+        mHeightMap.makeTerrain(heightmapData, width, height);
+        
+        // Check if heightmap was created
+        if (!mHeightMap.getVertices().empty() && !mHeightMap.getIndices().empty()) {
+            qDebug() << "Procedural heightmap created successfully";
+            heightmapCreated = true;
+        } else {
+            qDebug() << "Failed to create procedural heightmap";
+        }
+        
+        // Clean up
+        delete[] heightmapData;
+    }
+    
+    // Check if the heightmap was loaded/created successfully
+    if (!heightmapCreated) {
+        qDebug() << "ERROR: HeightMap generation failed - no vertices or indices!";
+        return;
+    }
+    
+    const std::vector<ObjLoader::Vertex>& vertices = mHeightMap.getVertices();
+    const std::vector<uint32_t>& indices = mHeightMap.getIndices();
+    
+    qDebug() << "HeightMap generated with" << vertices.size() << "vertices and" << indices.size() << "indices";
+    
+    // Create vertex buffer
+    VkDeviceSize vertexBufferSize = sizeof(ObjLoader::Vertex) * vertices.size();
+    
+    // Create staging buffer
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
+    createBuffer(
+        vertexBufferSize,
+        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+        stagingBuffer,
+        stagingBufferMemory
+    );
+    
+    // Map memory and copy vertices
+    void* data;
+    mDeviceFunctions->vkMapMemory(mWindow->device(), stagingBufferMemory, 0, vertexBufferSize, 0, &data);
+    memcpy(data, vertices.data(), vertexBufferSize);
+    mDeviceFunctions->vkUnmapMemory(mWindow->device(), stagingBufferMemory);
+    
+    // Create vertex buffer
+    createBuffer(
+        vertexBufferSize,
+        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+        mHeightMapVertexBuffer,
+        mHeightMapVertexBufferMemory
+    );
+    
+    // Copy staging buffer to vertex buffer
+    copyBuffer(stagingBuffer, mHeightMapVertexBuffer, vertexBufferSize);
+    
+    // Clean up staging buffer
+    mDeviceFunctions->vkDestroyBuffer(mWindow->device(), stagingBuffer, nullptr);
+    mDeviceFunctions->vkFreeMemory(mWindow->device(), stagingBufferMemory, nullptr);
+    
+    // Create index buffer
+    VkDeviceSize indexBufferSize = sizeof(uint32_t) * indices.size();
+    
+    // Create staging buffer for indices
+    createBuffer(
+        indexBufferSize,
+        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+        stagingBuffer,
+        stagingBufferMemory
+    );
+    
+    // Map memory and copy indices
+    mDeviceFunctions->vkMapMemory(mWindow->device(), stagingBufferMemory, 0, indexBufferSize, 0, &data);
+    memcpy(data, indices.data(), indexBufferSize);
+    mDeviceFunctions->vkUnmapMemory(mWindow->device(), stagingBufferMemory);
+    
+    // Create index buffer
+    createBuffer(
+        indexBufferSize,
+        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+        mHeightMapIndexBuffer,
+        mHeightMapIndexBufferMemory
+    );
+    
+    // Copy staging buffer to index buffer
+    copyBuffer(stagingBuffer, mHeightMapIndexBuffer, indexBufferSize);
+    
+    // Clean up staging buffer
+    mDeviceFunctions->vkDestroyBuffer(mWindow->device(), stagingBuffer, nullptr);
+    mDeviceFunctions->vkFreeMemory(mWindow->device(), stagingBufferMemory, nullptr);
+    
+    // Enable heightmap rendering
+    mUseHeightMap = true;
+    
+    qDebug() << "HeightMap initialization complete!";
+}
 void RenderWindow::drawOutdoorScene(VkDevice device, VkCommandBuffer cb, quint8* GPUmemPointer, VkResult& err)
 {
-   // Draw ground without texture
-QMatrix4x4 groundMatrix;
-groundMatrix.setToIdentity();
-QMatrix4x4 groundMVP = mProjectionMatrix * mViewMatrix * groundMatrix;
+   // Draw heightmap terrain
+   if (mUseHeightMap && mHeightMapVertexBuffer != VK_NULL_HANDLE && mHeightMapIndexBuffer != VK_NULL_HANDLE) {
+       qDebug() << "Drawing HeightMap terrain...";
+       
+       // Set up model-view-projection matrix for heightmap
+       QMatrix4x4 groundMatrix;
+       groundMatrix.setToIdentity();
+       QMatrix4x4 groundMVP = mProjectionMatrix * mViewMatrix * groundMatrix;
 
-// Update uniform buffer for ground
-VkDeviceSize groundOffset = mUniformBufferInfo[mWindow->currentFrame()].offset;
-err = mDeviceFunctions->vkMapMemory(device, mBufferMemory, groundOffset,
-                                  UNIFORM_DATA_SIZE, 0, reinterpret_cast<void **>(&GPUmemPointer));
-memcpy(GPUmemPointer, groundMVP.constData(), 16 * sizeof(float));
-mDeviceFunctions->vkUnmapMemory(device, mBufferMemory);
+       // Update uniform buffer for heightmap
+       VkDeviceSize groundOffset = mUniformBufferInfo[mWindow->currentFrame()].offset;
+       err = mDeviceFunctions->vkMapMemory(device, mBufferMemory, groundOffset,
+                                         UNIFORM_DATA_SIZE, 0, reinterpret_cast<void **>(&GPUmemPointer));
+       memcpy(GPUmemPointer, groundMVP.constData(), 16 * sizeof(float));
+       mDeviceFunctions->vkUnmapMemory(device, mBufferMemory);
 
-// Switch to no-texture pipeline for ground if available
-if (mNoTexturePipeline != VK_NULL_HANDLE) {
-    mDeviceFunctions->vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, mNoTexturePipeline);
-    qDebug() << "Using no-texture pipeline for ground";
-} else {
-    // Fall back to regular pipeline
-    mDeviceFunctions->vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipeline);
-    qDebug() << "Falling back to regular pipeline for ground (no-texture pipeline not available)";
-}
+       // Use no-texture pipeline for heightmap
+       if (mNoTexturePipeline != VK_NULL_HANDLE) {
+           mDeviceFunctions->vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, mNoTexturePipeline);
+       } else {
+           mDeviceFunctions->vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipeline);
+       }
 
-// Draw ground using the same descriptor sets (ignoring texture binding)
-mDeviceFunctions->vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1,
-                                        &mDescriptorSet[mWindow->currentFrame()], 0, nullptr);
-VkDeviceSize groundVertexOffset = 0;
-mDeviceFunctions->vkCmdBindVertexBuffers(cb, 0, 1, &mGroundBuffer, &groundVertexOffset);
-mDeviceFunctions->vkCmdDraw(cb, 6, 1, 0, 0);  // 6 vertices for ground
+       // Bind descriptor sets and vertex/index buffers
+       mDeviceFunctions->vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1,
+                                               &mDescriptorSet[mWindow->currentFrame()], 0, nullptr);
+       
+       // Bind the heightmap vertex buffer
+       VkDeviceSize heightMapVertexOffset = 0;
+       mDeviceFunctions->vkCmdBindVertexBuffers(cb, 0, 1, &mHeightMapVertexBuffer, &heightMapVertexOffset);
+       
+       // Bind the heightmap index buffer and draw using indices
+       mDeviceFunctions->vkCmdBindIndexBuffer(cb, mHeightMapIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+       
+       // Draw the heightmap using indices
+       const std::vector<uint32_t>& indices = mHeightMap.getIndices();
+       mDeviceFunctions->vkCmdDrawIndexed(cb, indices.size(), 1, 0, 0, 0);
 
-qDebug() << "Drew ground plane with color only (no texture)";
+       qDebug() << "Drew HeightMap terrain with" << indices.size() << "indices";
+       
+       // Switch back to regular pipeline for other objects
+       mDeviceFunctions->vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipeline);
+   } else {
+       // Fallback to the old ground drawing if heightmap is not available
+       QMatrix4x4 groundMatrix;
+       groundMatrix.setToIdentity();
+       QMatrix4x4 groundMVP = mProjectionMatrix * mViewMatrix * groundMatrix;
 
-// Switch back to textured pipeline for other objects if needed
-if (mNoTexturePipeline != VK_NULL_HANDLE) {
-    mDeviceFunctions->vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipeline);
-}
+       // Update uniform buffer for ground
+       VkDeviceSize groundOffset = mUniformBufferInfo[mWindow->currentFrame()].offset;
+       err = mDeviceFunctions->vkMapMemory(device, mBufferMemory, groundOffset,
+                                         UNIFORM_DATA_SIZE, 0, reinterpret_cast<void **>(&GPUmemPointer));
+       memcpy(GPUmemPointer, groundMVP.constData(), 16 * sizeof(float));
+       mDeviceFunctions->vkUnmapMemory(device, mBufferMemory);
+
+       // Switch to no-texture pipeline for ground if available
+       if (mNoTexturePipeline != VK_NULL_HANDLE) {
+           mDeviceFunctions->vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, mNoTexturePipeline);
+           qDebug() << "Using no-texture pipeline for ground";
+       } else {
+           // Fall back to regular pipeline
+           mDeviceFunctions->vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipeline);
+           qDebug() << "Falling back to regular pipeline for ground (no-texture pipeline not available)";
+       }
+
+       // Draw ground using the same descriptor sets (ignoring texture binding)
+       mDeviceFunctions->vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1,
+                                               &mDescriptorSet[mWindow->currentFrame()], 0, nullptr);
+       VkDeviceSize groundVertexOffset = 0;
+       mDeviceFunctions->vkCmdBindVertexBuffers(cb, 0, 1, &mGroundBuffer, &groundVertexOffset);
+       mDeviceFunctions->vkCmdDraw(cb, 6, 1, 0, 0);  // 6 vertices for ground
+
+       qDebug() << "Drew ground plane with color only (no texture) - HeightMap not available";
+
+       // Switch back to textured pipeline for other objects if needed
+       if (mNoTexturePipeline != VK_NULL_HANDLE) {
+           mDeviceFunctions->vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipeline);
+       }
+   }
 
     // Draw player cube at its current position
     QMatrix4x4 playerMatrix;

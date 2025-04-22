@@ -3,5 +3,6 @@
     <qresource prefix="/">
         <file>assets/models/CrateCube.obj</file>
         <file>assets/textures/wood_texture.jpg</file>
+        <file>assets/heightmaps/Heightmap.jpg</file>
     </qresource>
 </RCC> 

@@ -12,6 +12,8 @@ qt_add_executable(QtVulkanApp
     VulkanWindow.h VulkanWindow.cpp
     gamemanager.h gamemanager.cpp
     ObjLoader.h ObjLoader.cpp
+    HeightMap.h HeightMap.cpp
+    stb_image.cpp
     assets.qrc
 )
 # Define the shader files
@@ -74,6 +76,7 @@ qt_add_resources(QtVulkanApp "assets_resources"
         "/"
     FILES
         "assets/textures/wood_texture.jpg"
+        "assets/heightmaps/Heightmap.jpg"
 )
 
 qt_add_resources(QtVulkanApp "model_resources"

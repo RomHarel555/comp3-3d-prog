@@ -4,6 +4,7 @@
 #include <QVector>
 #include "GameManager.h"
 #include "ObjLoader.h"
+#include "HeightMap.h"
 
 // Structure to represent collectible objects
 struct Collectible {
@@ -158,6 +159,9 @@ public:
     // Model loading
     void loadNPCModel();
     void loadCrateCubeModel();
+
+    // HeightMap related methods
+    void initializeHeightMap();
 
 private:
     VkShaderModule createShader(const QString &name);
@@ -319,4 +323,12 @@ private:
     VkPipeline mNoTexturePipeline = VK_NULL_HANDLE;
     VkShaderModule mNoTextureVertShader = VK_NULL_HANDLE;
     VkShaderModule mNoTextureFragShader = VK_NULL_HANDLE;
+
+    // HeightMap data
+    HeightMap mHeightMap;
+    VkBuffer mHeightMapVertexBuffer = VK_NULL_HANDLE;
+    VkDeviceMemory mHeightMapVertexBufferMemory = VK_NULL_HANDLE;
+    VkBuffer mHeightMapIndexBuffer = VK_NULL_HANDLE;
+    VkDeviceMemory mHeightMapIndexBufferMemory = VK_NULL_HANDLE;
+    bool mUseHeightMap = true; // Whether to use heightmap or flat ground
 };
